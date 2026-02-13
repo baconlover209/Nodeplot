@@ -16,21 +16,23 @@
         @keydown.esc="close"
         @keydown.down.prevent="onArrowDown"
         @keydown.up.prevent="onArrowUp"
+        @keydown.right.prevent="onArrowRight"
+        @keydown.left.prevent="onArrowLeft"
         @keydown.enter="onEnter"
       />
     </div>
 
     <!-- Main List (Categories or Results) -->
-    <div class="menu-content">
+    <div class="menu-content" ref="menuContentRef">
       <!-- Results View -->
       <template v-if="searchQuery">
         <div
           v-for="(type, index) in filteredNodes"
           :key="type"
           class="menu-item"
-          :class="{ active: index === selectedIndex }"
+          :class="{ active: index === nodeIndex }"
           @click="selectNode(type)"
-          @mouseenter="selectedIndex = index"
+          @mouseenter="nodeIndex = index"
         >
           <div
             class="category-indicator"
@@ -46,10 +48,12 @@
       <!-- Category View -->
       <template v-else>
         <div
-          v-for="category in NODE_CATEGORIES"
+          v-for="(category, index) in NODE_CATEGORIES"
           :key="category.label"
           class="menu-item has-submenu"
-          @mouseenter="handleMouseEnterCategory($event, category)"
+          :class="{ active: !inSubmenu && index === categoryIndex }"
+          :ref="(el) => setCategoryRef(el, index)"
+          @mouseenter="handleMouseEnterCategory($event, category, index)"
           @mouseleave="handleMouseLeave"
         >
           <div
@@ -70,10 +74,15 @@
       @mouseleave="handleMouseLeave"
     >
       <div
-        v-for="type in activeCategory.nodeTypes"
+        v-for="(type, index) in activeCategory.nodeTypes"
         :key="type"
         class="menu-item"
+        :class="{ active: inSubmenu && index === nodeIndex }"
         @click="selectNode(type)"
+        @mouseenter="
+          inSubmenu = true;
+          nodeIndex = index;
+        "
       >
         <div
           class="category-indicator"
@@ -89,6 +98,12 @@
 import { ref, computed, onMounted, onUnmounted, nextTick, watch } from "vue";
 import { NODE_CATEGORIES, getNodeColor } from "./nodeEditorState";
 
+interface NodeCategory {
+  label: string;
+  color: string;
+  nodeTypes: string[];
+}
+
 const props = defineProps<{
   show: boolean;
   x: number;
@@ -102,11 +117,18 @@ const emit = defineEmits<{
 
 const menuRef = ref<HTMLElement | null>(null);
 const searchInput = ref<HTMLInputElement | null>(null);
+const searchResultRefs = ref<HTMLElement[]>([]);
+const categoryRefs = ref<HTMLElement[]>([]);
+
 const searchQuery = ref("");
-const activeCategory = ref<any | null>(null);
+const activeCategory = ref<NodeCategory | null>(null);
 const submenuY = ref(0);
-const selectedIndex = ref(0);
 const closeTimer = ref<number | null>(null);
+
+// Navigation State
+const categoryIndex = ref(0);
+const nodeIndex = ref(0);
+const inSubmenu = ref(false);
 
 const menuStyle = computed(() => ({
   left: `${props.x}px`,
@@ -136,26 +158,33 @@ const filteredNodes = computed(() => {
   );
 });
 
+// Watch visibility to reset state
 watch(
   () => props.show,
   (newVal) => {
     if (newVal) {
       searchQuery.value = "";
-      selectedIndex.value = 0;
-      activeCategory.value = null;
+      resetNavigation();
       if (closeTimer.value) {
         clearTimeout(closeTimer.value);
         closeTimer.value = null;
       }
       nextTick(() => {
         searchInput.value?.focus();
+        // If categories exist, select first one
+        if (NODE_CATEGORIES.length > 0) {
+          syncActiveCategory();
+        }
       });
     }
   }
 );
 
+// Watch search to reset indices
 watch(searchQuery, () => {
-  selectedIndex.value = 0;
+  nodeIndex.value = 0;
+  categoryIndex.value = 0;
+  inSubmenu.value = false;
   activeCategory.value = null;
   if (closeTimer.value) {
     clearTimeout(closeTimer.value);
@@ -163,17 +192,61 @@ watch(searchQuery, () => {
   }
 });
 
+function resetNavigation() {
+  categoryIndex.value = 0;
+  nodeIndex.value = 0;
+  inSubmenu.value = false;
+  activeCategory.value = null;
+}
+
 function formatNodeType(type: string) {
   return type
     .replace(/([A-Z])/g, " $1")
     .replace(/^./, (str) => str.toUpperCase());
 }
 
-function handleMouseEnterCategory(event: MouseEvent, category: any) {
+function setCategoryRef(el: any, index: number) {
+  if (el) categoryRefs.value[index] = el as HTMLElement;
+}
+
+function setSearchResultRef(el: any, index: number) {
+  if (el) searchResultRefs.value[index] = el as HTMLElement;
+}
+
+function updateSubmenuPosition() {
+  const el = categoryRefs.value[categoryIndex.value];
+  if (el && menuRef.value) {
+    // Relative position
+    const menuRect = menuRef.value.getBoundingClientRect();
+    const itemRect = el.getBoundingClientRect();
+    submenuY.value = itemRect.top - menuRect.top - 4; // Align with top padding diff
+
+    // Auto scroll category into view
+    el.scrollIntoView({ block: "nearest" });
+  } else {
+    // Fallback if refs aren't ready
+    submenuY.value = categoryIndex.value * 35;
+  }
+}
+
+function syncActiveCategory() {
+  activeCategory.value = NODE_CATEGORIES[categoryIndex.value] as NodeCategory;
+  updateSubmenuPosition();
+}
+
+// Mouse Handlers
+function handleMouseEnterCategory(
+  event: MouseEvent,
+  category: any,
+  index: number
+) {
   if (closeTimer.value) {
     clearTimeout(closeTimer.value);
     closeTimer.value = null;
   }
+
+  categoryIndex.value = index;
+  inSubmenu.value = false;
   setActiveCategory(event, category);
 }
 
@@ -182,13 +255,15 @@ function handleMouseEnterSubmenu() {
     clearTimeout(closeTimer.value);
     closeTimer.value = null;
   }
+  inSubmenu.value = true;
 }
 
 function handleMouseLeave() {
   closeTimer.value = window.setTimeout(() => {
     activeCategory.value = null;
     closeTimer.value = null;
-  }, 150); // 150ms delay
+    inSubmenu.value = false;
+  }, 150);
 }
 
 function setActiveCategory(event: MouseEvent, category: any) {
@@ -199,7 +274,7 @@ function setActiveCategory(event: MouseEvent, category: any) {
   if (target && menuRef.value) {
     const menuRect = menuRef.value.getBoundingClientRect();
     const itemRect = target.getBoundingClientRect();
-    submenuY.value = itemRect.top - menuRect.top - 4; // -4 to align with top padding
+    submenuY.value = itemRect.top - menuRect.top - 4;
   }
 }
 
@@ -212,26 +287,84 @@ function close() {
   emit("close");
 }
 
+// Keyboard Navigation Handlers
 function onArrowDown() {
-  if (filteredNodes.value.length > 0) {
-    selectedIndex.value =
-      (selectedIndex.value + 1) % filteredNodes.value.length;
+  if (searchQuery.value) {
+    // Search Results Navigation
+    if (filteredNodes.value.length > 0) {
+      nodeIndex.value = (nodeIndex.value + 1) % filteredNodes.value.length;
+    }
+  } else {
+    // Category/Submenu Navigation
+    if (inSubmenu.value) {
+      const list = activeCategory.value?.nodeTypes || [];
+      if (list.length > 0) {
+        nodeIndex.value = (nodeIndex.value + 1) % list.length;
+      }
+    } else {
+      categoryIndex.value = (categoryIndex.value + 1) % NODE_CATEGORIES.length;
+      syncActiveCategory();
+    }
   }
 }
 
 function onArrowUp() {
-  if (filteredNodes.value.length > 0) {
-    selectedIndex.value =
-      (selectedIndex.value - 1 + filteredNodes.value.length) %
-      filteredNodes.value.length;
+  if (searchQuery.value) {
+    if (filteredNodes.value.length > 0) {
+      nodeIndex.value =
+        (nodeIndex.value - 1 + filteredNodes.value.length) %
+        filteredNodes.value.length;
+    }
+  } else {
+    if (inSubmenu.value) {
+      const list = activeCategory.value?.nodeTypes || [];
+      if (list.length > 0) {
+        nodeIndex.value = (nodeIndex.value - 1 + list.length) % list.length;
+      }
+    } else {
+      categoryIndex.value =
+        (categoryIndex.value - 1 + NODE_CATEGORIES.length) %
+        NODE_CATEGORIES.length;
+      syncActiveCategory();
+    }
+  }
+}
+
+function onArrowRight() {
+  if (!searchQuery.value && !inSubmenu.value) {
+    inSubmenu.value = true;
+    nodeIndex.value = 0;
+    // ensure active category is set (should be from up/down/hover)
+    if (!activeCategory.value) {
+      syncActiveCategory();
+    }
+  }
+}
+
+function onArrowLeft() {
+  if (!searchQuery.value && inSubmenu.value) {
+    inSubmenu.value = false;
+    // We keep activeCategory visible to allow quick return
   }
 }
 
 function onEnter() {
-  const selectedNode = filteredNodes.value[selectedIndex.value];
-  if (searchQuery.value && selectedNode) {
-    selectNode(selectedNode);
+  // If searching
+  if (searchQuery.value) {
+    const selectedNode = filteredNodes.value[nodeIndex.value];
+    if (selectedNode) selectNode(selectedNode);
+    return;
   }
+
+  // If in submenu
+  if (inSubmenu.value) {
+    const selectedType = activeCategory.value?.nodeTypes?.[nodeIndex.value];
+    if (selectedType) selectNode(selectedType);
+    return;
+  }
+
+  // If on category, enter it
+  onArrowRight();
 }
 
 // Global click-away
@@ -368,3 +501,4 @@ onUnmounted(() => {
   border-radius: 3px;
 }
 </style>
+
