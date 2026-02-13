@@ -1,10 +1,6 @@
 <template>
   <div class="chart-wrapper" ref="wrapperRef">
-    <div
-      ref="chartContainer"
-      class="chart-container"
-      :style="visualStyle"
-    ></div>
+    <div ref="chartContainer" class="chart-container" :style="visualStyle"></div>
   </div>
 </template>
 
@@ -56,38 +52,63 @@ const visualStyle = computed(() => {
   };
 });
 
-const drawChart = () => {
-  if (chartContainer.value) {
-    Plotly.react(chartContainer.value, props.data, props.layout, {
-      responsive: false,
-    });
+let isRendering = false;
+let needsUpdate = false;
+
+const drawChart = async () => {
+  if (isRendering) {
+    needsUpdate = true;
+    return;
+  }
+
+  if (!chartContainer.value) return;
+
+  isRendering = true;
+  try {
+    do {
+      needsUpdate = false;
+      await Plotly.react(chartContainer.value, props.data, props.layout, {
+        responsive: false,
+        displayModeBar: true,
+      });
+    } while (needsUpdate);
+  } catch (e) {
+    console.warn("Plotly render error:", e);
+  } finally {
+    isRendering = false;
   }
 };
 
 const performPlotlyResize = async () => {
-  if (!chartContainer.value || isResizingActive) {
+  if (!chartContainer.value || isResizingActive || isRendering) {
     pendingResize = true;
+    needsUpdate = true; // Also trigger the regular render queue
     return;
   }
 
   isResizingActive = true;
+  isRendering = true;
   pendingResize = false;
 
   try {
-    const snapshotW = visualWidth.value;
-    const snapshotH = visualHeight.value;
-    internalWidth.value = snapshotW;
-    internalHeight.value = snapshotH;
+    do {
+      needsUpdate = false;
+      const snapshotW = visualWidth.value;
+      const snapshotH = visualHeight.value;
+      internalWidth.value = snapshotW;
+      internalHeight.value = snapshotH;
 
-    await new Promise((resolve) => requestAnimationFrame(resolve));
-    await Plotly.Plots.resize(chartContainer.value);
+      await new Promise((resolve) => requestAnimationFrame(resolve));
+      await Plotly.Plots.resize(chartContainer.value);
 
-    renderedWidth.value = snapshotW;
-    renderedHeight.value = snapshotH;
+      renderedWidth.value = snapshotW;
+      renderedHeight.value = snapshotH;
+    } while (needsUpdate);
   } catch (e) {
     console.error("Plotly resize error:", e);
   } finally {
     isResizingActive = false;
+    isRendering = false;
     if (pendingResize) {
       triggerDeferredRender();
     }

@@ -1,75 +1,41 @@
 <template>
-  <div
-    class="node-editor-canvas"
-    ref="canvasRef"
-    @mousedown="onMouseDown"
-    @mousemove="onMouseMove"
-    @mouseup="onMouseUp"
-    @wheel.prevent="onWheel"
-    @contextmenu.prevent="onContextMenu"
-  >
+  <div class="node-editor-canvas" ref="canvasRef" @mousedown="onMouseDown" @mousemove="onMouseMove" @mouseup="onMouseUp"
+    @wheel.prevent="onWheel" @contextmenu.prevent="onContextMenu">
     <!-- Connections Layer (SVG) -->
     <svg class="connections-layer">
       <g :style="transformStyle">
-        <ConnectionLine
-          v-for="conn in connections"
-          :key="conn.id"
+        <ConnectionLine v-for="conn in connections" :key="conn.id"
           :x1="getPortPosition(conn.sourceNodeId, conn.sourcePort, 'output').x"
           :y1="getPortPosition(conn.sourceNodeId, conn.sourcePort, 'output').y"
           :x2="getPortPosition(conn.targetNodeId, conn.targetPort, 'input').x"
-          :y2="getPortPosition(conn.targetNodeId, conn.targetPort, 'input').y"
-          :value="getConnectionValue(conn.id)"
-          @click.stop="onConnectionClick(conn.id)"
-        />
+          :y2="getPortPosition(conn.targetNodeId, conn.targetPort, 'input').y" :value="getConnectionValue(conn.id)"
+          @click.stop="onConnectionClick(conn.id)" />
         <!-- Dragging Connection Line -->
-        <ConnectionLine
-          v-if="connectionState && connectionState.isConnecting"
-          :x1="
-            connectionState.sourceType === 'output' ? dragStart.x : dragEnd.x
-          "
-          :y1="
-            connectionState.sourceType === 'output' ? dragStart.y : dragEnd.y
-          "
-          :x2="
-            connectionState.sourceType === 'output' ? dragEnd.x : dragStart.x
-          "
-          :y2="
-            connectionState.sourceType === 'output' ? dragEnd.y : dragStart.y
-          "
-          :value="null"
-        />
+        <ConnectionLine v-if="connectionState && connectionState.isConnecting" :x1="connectionState.sourceType === 'output' ? dragStart.x : dragEnd.x
+          " :y1="connectionState.sourceType === 'output' ? dragStart.y : dragEnd.y
+            " :x2="connectionState.sourceType === 'output' ? dragEnd.x : dragStart.x
+              " :y2="connectionState.sourceType === 'output' ? dragEnd.y : dragStart.y
+                " :value="null" />
       </g>
     </svg>
 
     <!-- Nodes Layer -->
     <div class="transform-layer" :style="transformStyle">
-      <component
-        v-for="node in nodes"
-        :key="node.id"
-        :is="getNodeComponent(node.type)"
-        :node="node"
-        :selected="selection.includes(node.id)"
-        @connect-start="onConnectStart"
-        @connect-end="onConnectEnd"
-        @socket-click="onSocketClick"
-      />
+      <component v-for="node in nodes" :key="node.id" :is="getNodeComponent(node.type)" :node="node"
+        :selected="selection.includes(node.id)" @connect-start="onConnectStart" @connect-end="onConnectEnd"
+        @socket-click="onSocketClick" />
+
+      <!-- Selection Box -->
+      <div v-if="selectionBox.active" class="selection-box" :style="selectionBoxStyle"></div>
     </div>
 
     <div class="controls">
-      <button
-        class="add-node-btn"
-        @click="toggleAddNodeMenuAtCenter"
-        title="Add Node (Shift+A)"
-      >
+      <button class="add-node-btn" @click="toggleAddNodeMenuAtCenter" title="Add Node (Shift+A)">
         + Add Node
       </button>
 
-      <button
-        class="doc-toggle-btn"
-        :class="{ active: nodeEditorState.showDocPanel }"
-        @click="nodeEditorState.showDocPanel = !nodeEditorState.showDocPanel"
-        title="Toggle Plotly Documentation"
-      >
+      <button class="doc-toggle-btn" :class="{ active: nodeEditorState.showDocPanel }"
+        @click="nodeEditorState.showDocPanel = !nodeEditorState.showDocPanel" title="Toggle Plotly Documentation">
         <div class="i-mdi-book-open-variant"></div>
       </button>
 
@@ -77,34 +43,19 @@
     </div>
 
     <div class="history-controls">
-      <button
-        class="history-btn"
-        :class="{ disabled: !canUndo }"
-        :disabled="!canUndo"
-        @click="undo"
-        title="Undo (Ctrl+Z)"
-      >
+      <button class="history-btn" :class="{ disabled: !canUndo }" :disabled="!canUndo" @click="undo"
+        title="Undo (Ctrl+Z)">
         <div class="i-mdi-undo"></div>
       </button>
-      <button
-        class="history-btn"
-        :class="{ disabled: !canRedo }"
-        :disabled="!canRedo"
-        @click="redo"
-        title="Redo (Ctrl+Y)"
-      >
+      <button class="history-btn" :class="{ disabled: !canRedo }" :disabled="!canRedo" @click="redo"
+        title="Redo (Ctrl+Y)">
         <div class="i-mdi-redo"></div>
       </button>
     </div>
 
     <!-- Add Node Menu (Blender style) -->
-    <AddNodeMenu
-      :show="showAddNodeMenu"
-      :x="menuPos.x"
-      :y="menuPos.y"
-      @close="showAddNodeMenu = false"
-      @select="onNodeSelected"
-    />
+    <AddNodeMenu :show="showAddNodeMenu" :x="menuPos.x" :y="menuPos.y" @close="showAddNodeMenu = false"
+      @select="onNodeSelected" />
   </div>
 </template>
 
@@ -136,6 +87,10 @@ import {
   canRedo,
   copySelection,
   pasteNodes,
+  bringToFront,
+  startSelectionBox,
+  updateSelectionBox,
+  endSelectionBox,
 } from "./nodeEditorState";
 import type { NodeDefinition } from "./nodeEditorState";
 import ConnectionLine from "./ConnectionLine.vue";
@@ -147,6 +102,10 @@ import LayoutNode from "./nodes/LayoutNode.vue";
 import RangeNode from "./nodes/RangeNode.vue";
 import LinkNode from "./nodes/LinkNode.vue";
 import IsolateColumnNode from "./nodes/IsolateColumnNode.vue";
+import SaveNode from "./nodes/SaveNode.vue";
+import AdvancedTraceNode from "./nodes/AdvancedTraceNode.vue";
+import GeoJSONNode from "./nodes/GeoJSONNode.vue";
+import IndexNode from "./nodes/IndexNode.vue";
 import AddNodeMenu from "./AddNodeMenu.vue";
 
 registerNodeType("config", ConfigNode);
@@ -156,6 +115,10 @@ registerNodeType("layoutNode", LayoutNode);
 registerNodeType("range", RangeNode);
 registerNodeType("link", LinkNode);
 registerNodeType("isolateColumn", IsolateColumnNode);
+registerNodeType("save", SaveNode);
+registerNodeType("advancedTrace", AdvancedTraceNode);
+registerNodeType("geojson", GeoJSONNode);
+registerNodeType("index", IndexNode);
 
 // --- State Access ---
 const nodes = computed(() => nodeEditorState.nodes);
@@ -184,6 +147,23 @@ const transformStyle = computed(() => ({
   transformOrigin: "0 0",
 }));
 
+const selectionBox = computed(() => nodeEditorState.selectionBox);
+
+const selectionBoxStyle = computed(() => {
+  const box = selectionBox.value;
+  const x1 = Math.min(box.startX, box.endX);
+  const x2 = Math.max(box.startX, box.endX);
+  const y1 = Math.min(box.startY, box.endY);
+  const y2 = Math.max(box.startY, box.endY);
+
+  return {
+    left: `${x1}px`,
+    top: `${y1}px`,
+    width: `${x2 - x1}px`,
+    height: `${y2 - y1}px`,
+  };
+});
+
 // --- Mouse Interaction ---
 let isPanning = false;
 let startPan = { x: 0, y: 0 };
@@ -207,11 +187,17 @@ function onMouseDown(e: MouseEvent) {
 
   // Pan on Middle Click OR (Left Click on Background or with Alt)
   if (e.button === 1 || (e.button === 0 && (e.altKey || isBackground))) {
+    // Start Box Selection if Shift is pressed
+    if (isBackground && e.shiftKey && e.button === 0) {
+      startSelectionBox(mousePos.value.x, mousePos.value.y);
+      return;
+    }
+
     isPanning = true;
     startPan = { x: e.clientX, y: e.clientY };
 
     // Clear selection if panning via background click (standard behavior)
-    if (e.button === 0 && isBackground) {
+    if (e.button === 0 && isBackground && !e.shiftKey) {
       clearSelection();
     }
   }
@@ -220,7 +206,9 @@ function onMouseDown(e: MouseEvent) {
 function onMouseMove(e: MouseEvent) {
   updateMousePos(e.clientX, e.clientY);
 
-  if (isPanning) {
+  if (selectionBox.value.active) {
+    updateSelectionBox(mousePos.value.x, mousePos.value.y);
+  } else if (isPanning) {
     const dx = e.clientX - startPan.x;
     const dy = e.clientY - startPan.y;
     setPan({ x: pan.value.x + dx, y: pan.value.y + dy });
@@ -235,18 +223,14 @@ function onMouseMove(e: MouseEvent) {
   }
 }
 
-function onMouseUp() {
+function onMouseUp(e: MouseEvent) {
+  if (selectionBox.value.active) {
+    endSelectionBox(e.shiftKey || e.ctrlKey);
+  }
   isPanning = false;
   endNodeDrag();
 
   if (connectionState.value?.isConnecting) {
-    // Handling "Drag output to background -> Create Display"
-    if (connectionState.value.sourceType === "output") {
-      // Create Display Node
-      // Correct approach: Use mousePos which tracks world coordinates of mouse
-      createNewNodeConnected("display", mousePos.value);
-    }
-
     endConnection();
   }
 }
@@ -297,15 +281,15 @@ function onKeyDown(e: KeyboardEvent) {
     openMenuAtCursor(lastMouseScreenPos.value.x, lastMouseScreenPos.value.y);
   }
 
-  // Press 'a' while dragging from input -> Create Constant
+  // Press 'a' while dragging -> Create node (Constant for input, Result for output)
   if (
     e.key.toLowerCase() === "a" &&
     !e.shiftKey &&
-    connectionState.value.isConnecting &&
-    connectionState.value.sourceType === "input"
+    connectionState.value?.isConnecting
   ) {
     e.preventDefault();
-    createNewNodeConnected("constant", mousePos.value);
+    const type = connectionState.value.sourceType === "input" ? "constant" : "display";
+    createNewNodeConnected(type, mousePos.value);
     endConnection();
   }
 
@@ -375,6 +359,7 @@ onUnmounted(() => {
 // --- Connection Logic ---
 
 function onConnectStart({ nodeId, type, port }: any) {
+  bringToFront(nodeId);
   const { x, y } = getPortPosition(nodeId, port, type);
   // Start connection from either input or output
   startConnection(nodeId, port, type, x, y);
@@ -449,7 +434,7 @@ function createNewNodeConnected(type: string, pos: { x: number; y: number }) {
     // So we want New Node (Output) -> Source Node (Input)
     const outputKeys = Object.keys(newNode.outputs);
     if (outputKeys.length > 0) {
-      const targetPort = outputKeys[0]; // Pick first output
+      const targetPort = outputKeys[0]!; // Pick first output
 
       removeConnectionsToInput(sourceId, sourcePort);
 
@@ -488,6 +473,7 @@ function createNewNodeConnected(type: string, pos: { x: number; y: number }) {
 }
 
 function onSocketClick({ nodeId, type, port }: any) {
+  bringToFront(nodeId);
   // If it's an input socket, disconnect
   if (type === "input") {
     removeConnectionsToInput(nodeId, port);
@@ -648,7 +634,7 @@ function createNodeAtPos(type: string, pos: { x: number; y: number }) {
     node.outputs = { output: null };
   } else if (type === "constant") {
     node.label = "Constant";
-    node.data = { dataType: "string", value: "" };
+    node.data = { dataType: "raw", value: "" };
     node.inputs = {};
     node.outputs = { output: null };
   } else if (type === "color") {
@@ -681,6 +667,16 @@ function createNodeAtPos(type: string, pos: { x: number; y: number }) {
     node.data = { fileName: "", csvData: null, width: 0, height: 0 };
     node.inputs = {};
     node.outputs = { data: null, width: null, height: null, fileName: null };
+  } else if (type === "geojson") {
+    node.label = "GeoJSON";
+    node.data = { fileName: "", geojsonData: null, url: "" };
+    node.inputs = {};
+    node.outputs = { data: null };
+  } else if (type === "index") {
+    node.label = "Index";
+    node.data = { index: 0 };
+    node.inputs = { array: null, index: null };
+    node.outputs = { value: null };
   } else if (type === "isolateColumn") {
     node.label = "Isolate Column";
     node.data = { columnIndex: 0 };
@@ -695,6 +691,11 @@ function createNodeAtPos(type: string, pos: { x: number; y: number }) {
     node.label = "Trace";
     node.data = { type: "scatter", mode: "lines+markers" };
     node.inputs = { x: null, y: null };
+    node.outputs = { trace: null };
+  } else if (type === "advancedTrace") {
+    node.label = "Advanced Trace";
+    node.data = { type: "scatter", plotlyType: "scatter", mode: "lines+markers", opacity: 1, showlegend: true };
+    node.inputs = { x: null, y: null, config: null };
     node.outputs = { trace: null };
   } else if (type === "joiner") {
     node.label = "Joiner";
@@ -719,8 +720,12 @@ function createNodeAtPos(type: string, pos: { x: number; y: number }) {
   } else if (type === "filter") {
     node.label = "Filter";
     node.data = {};
-    node.inputs = { data: null, mask: null };
     node.outputs = { filtered: null };
+  } else if (type === "save") {
+    node.label = "Save Value";
+    node.data = { storedValue: null, prevStore: false };
+    node.inputs = { in: null, store: null };
+    node.outputs = { out: null };
   } else if (type === "plotly") {
     node.label = "Plotly Chart";
     node.data = {};
@@ -814,6 +819,14 @@ function createNodeAtPos(type: string, pos: { x: number; y: number }) {
   transform: translateX(-100%);
 }
 
+.selection-box {
+  position: absolute;
+  background: rgba(0, 210, 255, 0.1);
+  border: 1px solid #00d2ff;
+  pointer-events: none;
+  z-index: 1000;
+}
+
 .add-node-btn {
   background: #00b5dd;
   color: white;
@@ -893,13 +906,15 @@ function createNodeAtPos(type: string, pos: { x: number; y: number }) {
   bottom: 20px;
   left: 20px;
   background: rgba(30, 30, 30, 0.7);
-  padding: 8px; /* Slightly less padding for just icons */
+  padding: 8px;
+  /* Slightly less padding for just icons */
   border-radius: 10px;
   color: #fff;
   pointer-events: auto;
   display: flex;
   align-items: center;
-  gap: 8px; /* Closer together */
+  gap: 8px;
+  /* Closer together */
   backdrop-filter: blur(8px);
   border: 1px solid rgba(255, 255, 255, 0.1);
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);

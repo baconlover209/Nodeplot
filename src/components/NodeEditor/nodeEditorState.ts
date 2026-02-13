@@ -71,6 +71,13 @@ export interface NodeEditorState {
     controlLayout: ControlTile[];
     isLive: boolean;
     showDocPanel: boolean;
+    selectionBox: {
+        active: boolean;
+        startX: number;
+        startY: number;
+        endX: number;
+        endY: number;
+    };
 }
 
 const state = reactive<NodeEditorState>({
@@ -98,8 +105,29 @@ const state = reactive<NodeEditorState>({
     },
     controlLayout: [],
     isLive: true,
-    showDocPanel: false
+    showDocPanel: false,
+    selectionBox: {
+        active: false,
+        startX: 0,
+        startY: 0,
+        endX: 0,
+        endY: 0
+    }
 });
+
+// --- Helpers ---
+const setNested = (obj: any, path: string, value: any) => {
+    if (value === null || value === undefined) return;
+    const keys = path.split('.');
+    let current = obj;
+    for (let i = 0; i < keys.length - 1; i++) {
+        const key = keys[i]!;
+        if (!current[key]) current[key] = {};
+        current = current[key];
+    }
+    const lastKey = keys[keys.length - 1]!;
+    current[lastKey] = value;
+};
 
 // --- History Management ---
 
@@ -130,9 +158,7 @@ export function pushHistoryState() {
     // Check if identical to last history state to avoid duplicates
     if (historyIndex.value >= 0) {
         const lastSnapshot = history.value[historyIndex.value];
-        // Simple JSON comparison is sufficient here as key order typically remains stable
-        // and we want to catch "no-op" updates
-        if (JSON.stringify(currentSnapshot) === JSON.stringify(lastSnapshot)) {
+        if (lastSnapshot && JSON.stringify(currentSnapshot) === JSON.stringify(lastSnapshot)) {
             return;
         }
     }
@@ -156,7 +182,9 @@ export function undo() {
     if (historyIndex.value > 0) {
         historyIndex.value--;
         const snapshot = history.value[historyIndex.value];
-        restoreSnapshot(snapshot);
+        if (snapshot) {
+            restoreSnapshot(snapshot);
+        }
     }
 }
 
@@ -164,7 +192,9 @@ export function redo() {
     if (historyIndex.value < history.value.length - 1) {
         historyIndex.value++;
         const snapshot = history.value[historyIndex.value];
-        restoreSnapshot(snapshot);
+        if (snapshot) {
+            restoreSnapshot(snapshot);
+        }
     }
 }
 
@@ -250,25 +280,26 @@ export function duplicateNode(nodeId: string) {
 }
 
 export const NODE_CATEGORIES = [
-    {
-        label: 'Inputs',
-        color: '#d7d7d7ff', // Light Grey
-        nodeTypes: ['input', 'constant', 'number', 'color', 'csvInput', 'link']
-    },
+
     {
         label: 'Logic & Math',
         color: '#00D2FF', // Teal
         nodeTypes: ['math', 'logic', 'compare', 'if', 'switch', 'range', 'filter']
     },
     {
+        label: 'Inputs',
+        color: '#d7d7d7ff', // Light Grey
+        nodeTypes: ['constant', 'link', 'input', 'number', 'color', 'chartEvent']
+    },
+    {
         label: 'Data',
         color: '#F4B400', // Gold/Orange
-        nodeTypes: ['isolateColumn', 'joiner', 'chartEvent']
+        nodeTypes: ['csvInput', 'isolateColumn', 'joiner', 'geojson', 'save', 'index']
     },
     {
         label: 'Graphing',
         color: '#CC33FF', // Purple
-        nodeTypes: ['trace', 'subplot', 'layoutNode', 'config', 'styling']
+        nodeTypes: ['trace', 'advancedTrace', 'subplot', 'layoutNode', 'config', 'styling']
     },
     {
         label: 'Output',
@@ -324,6 +355,14 @@ export function clearSelection() {
     state.selection = [];
 }
 
+export function bringToFront(nodeId: string) {
+    const index = state.nodes.findIndex(n => n.id === nodeId);
+    if (index !== -1 && index !== state.nodes.length - 1) {
+        const node = state.nodes.splice(index, 1)[0]!;
+        state.nodes.push(node);
+    }
+}
+
 export function selectNode(nodeId: string, additive = false) {
     if (additive) {
         if (!state.selection.includes(nodeId)) {
@@ -332,6 +371,57 @@ export function selectNode(nodeId: string, additive = false) {
     } else {
         state.selection = [nodeId];
     }
+    bringToFront(nodeId);
+}
+
+export function startSelectionBox(x: number, y: number) {
+    state.selectionBox.active = true;
+    state.selectionBox.startX = x;
+    state.selectionBox.startY = y;
+    state.selectionBox.endX = x;
+    state.selectionBox.endY = y;
+}
+
+export function updateSelectionBox(x: number, y: number) {
+    if (state.selectionBox.active) {
+        state.selectionBox.endX = x;
+        state.selectionBox.endY = y;
+    }
+}
+
+export function endSelectionBox(additive: boolean = false) {
+    if (!state.selectionBox.active) return;
+
+    const x1 = Math.min(state.selectionBox.startX, state.selectionBox.endX);
+    const x2 = Math.max(state.selectionBox.startX, state.selectionBox.endX);
+    const y1 = Math.min(state.selectionBox.startY, state.selectionBox.endY);
+    const y2 = Math.max(state.selectionBox.startY, state.selectionBox.endY);
+
+    const newSelection: string[] = additive ? [...state.selection] : [];
+
+    state.nodes.forEach(node => {
+        // Approximate node bounds (Nodes are roughly 200px wide, height varies)
+        // For a more accurate check, we'd need actual dimensions, but 200x150 is a decent fallback
+        const nodeWidth = 200;
+        const nodeHeight = 100; // Minimum approximate height
+
+        const nx1 = node.position.x;
+        const nx2 = node.position.x + nodeWidth;
+        const ny1 = node.position.y;
+        const ny2 = node.position.y + nodeHeight;
+
+        // Check if node overlaps with selection box
+        const overlaps = !(nx2 < x1 || nx1 > x2 || ny2 < y1 || ny1 > y2);
+
+        if (overlaps) {
+            if (!newSelection.includes(node.id)) {
+                newSelection.push(node.id);
+            }
+        }
+    });
+
+    state.selection = newSelection;
+    state.selectionBox.active = false;
 }
 
 export function copySelection() {
@@ -377,6 +467,8 @@ export function pasteNodes(mousePos?: Position) {
 export function startNodeDrag(nodeId: string, mouseX: number, mouseY: number, additive: boolean = false) {
     const node = state.nodes.find(n => n.id === nodeId);
     if (!node) return;
+
+    bringToFront(nodeId);
 
     if (additive) {
         if (!state.selection.includes(nodeId)) {
@@ -719,27 +811,77 @@ function evaluateNode(node: NodeDefinition) {
         }
     }
     else if (node.type === 'constant') {
-        // Constant node parses value based on data type
         if (!nodeValues[node.id]) nodeValues[node.id] = {};
         const values = nodeValues[node.id];
         if (values) {
-            const rawValue = node.data.value || '';
-            let parsedValue: any = rawValue;
+            const rawValue = node.data.value;
+            const dataType = node.data.dataType || 'raw';
+            let result: any = rawValue;
 
-            if (node.data.dataType === 'integer') {
-                parsedValue = parseInt(rawValue, 10);
-                if (isNaN(parsedValue)) parsedValue = 0;
-            } else if (node.data.dataType === 'json') {
-                try {
-                    parsedValue = JSON.parse(rawValue);
-                } catch {
-                    parsedValue = null;
+            if (dataType === 'raw') {
+                if (typeof rawValue === 'string') {
+                    const trimmed = rawValue.trim();
+                    try {
+                        result = JSON.parse(trimmed);
+                    } catch {
+                        if (trimmed === 'true') result = true;
+                        else if (trimmed === 'false') result = false;
+                        else if (trimmed === 'null') result = null;
+                        else if (!isNaN(Number(trimmed)) && trimmed !== '') result = Number(trimmed);
+                        else result = rawValue;
+                    }
+                }
+            } else if (dataType === 'boolean') {
+                result = Boolean(rawValue);
+            } else if (dataType === 'string') {
+                result = String(rawValue);
+            } else if (dataType === 'color') {
+                result = String(rawValue);
+            } else if (dataType === 'expression') {
+                if (typeof rawValue === 'string' && rawValue.trim() !== '') {
+                    try {
+                        const context = {
+                            ...Math,
+                            pi: Math.PI, e: Math.E, PI: Math.PI, E: Math.E,
+                            sqrt: Math.sqrt, sin: Math.sin, cos: Math.cos, tan: Math.tan,
+                            log: Math.log, exp: Math.exp, pow: Math.pow, abs: Math.abs,
+                            floor: Math.floor, ceil: Math.ceil, round: Math.round,
+                            min: Math.min, max: Math.max, random: Math.random
+                        };
+                        const keys = Object.keys(context);
+                        const vals = Object.values(context);
+                        const f = new Function(...keys, `return (${rawValue})`);
+                        result = f(...vals);
+                    } catch {
+                        result = null;
+                    }
+                } else {
+                    result = null;
                 }
             }
-            // else string - keep as is
 
-            values['output'] = parsedValue;
+            values['output'] = result;
         }
+    }
+    else if (node.type === 'index') {
+        const array = getInputValue(node.id, 'array');
+        const index = getInputValue(node.id, 'index') ?? node.data.index ?? 0;
+
+        let result = null;
+        if (Array.isArray(array)) {
+            const idx = Math.floor(Number(index));
+            if (idx >= 0 && idx < array.length) {
+                result = array[idx];
+            }
+        } else if (array && typeof array === 'object') {
+            // Support object key access too? User asked for "index number", but why not support both if it's easy.
+            // Actually, keep it simple for now as per request.
+            result = array[index];
+        }
+
+        if (!nodeValues[node.id]) nodeValues[node.id] = {};
+        const values = nodeValues[node.id];
+        if (values) values['value'] = result;
     }
     else if (node.type === 'color') {
         // Color node outputs color in various formats
@@ -860,6 +1002,14 @@ function evaluateNode(node: NodeDefinition) {
             values['fileName'] = node.data.fileName ?? '';
         }
     }
+    else if (node.type === 'geojson') {
+        if (!nodeValues[node.id]) nodeValues[node.id] = {};
+        const values = nodeValues[node.id];
+        if (values) {
+            values['data'] = node.data.geojsonData ?? null;
+            values['fileName'] = node.data.fileName ?? '';
+        }
+    }
     else if (node.type === 'isolateColumn') {
         // Isolate column node extracts a specific column from CSV data
         if (!nodeValues[node.id]) nodeValues[node.id] = {};
@@ -921,19 +1071,6 @@ function evaluateNode(node: NodeDefinition) {
         const values = nodeValues[node.id];
 
         const config: any = {};
-
-        // Helper to set nested property
-        const setNested = (obj: any, path: string, value: any) => {
-            const keys = path.split('.');
-            let current = obj;
-            for (let i = 0; i < keys.length - 1; i++) {
-                const key = keys[i]!;
-                if (!current[key]) current[key] = {};
-                current = current[key];
-            }
-            const lastKey = keys[keys.length - 1]!;
-            current[lastKey] = value;
-        };
 
         if (node.data.isManual) {
             // Manual Mode: use manualConfig
@@ -1247,16 +1384,134 @@ function evaluateNode(node: NodeDefinition) {
             values['trace'] = trace;
         }
     }
+    else if (node.type === 'advancedTrace') {
+        if (!nodeValues[node.id]) nodeValues[node.id] = {};
+        const values = nodeValues[node.id];
+
+        const type = node.data.type || 'scatter';
+        const plotlyType = node.data.plotlyType || 'scatter';
+
+        // Base trace from inputs
+        const trace: any = {
+            type: plotlyType,
+            mode: node.data.mode || 'lines+markers',
+            name: node.data.name || undefined,
+            opacity: node.data.opacity ?? 1,
+            showlegend: node.data.showlegend ?? true,
+        };
+
+        // Standard inputs mapped to plotly paths
+        const portMapping = [
+            'x', 'y', 'z', 'text', 'labels', 'values', 'parents', 'ids',
+            'marker.color', 'marker.size', 'marker.colors', 'marker.opacity',
+            'line.color', 'line.width', 'line.dash',
+            'node.label', 'link.source', 'link.target', 'link.value',
+            'lat', 'lon', 'locations', 'geojson',
+            'open', 'high', 'low', 'close',
+            'r', 'theta', 'a', 'b', 'c',
+            'u', 'v', 'w', 'intensity', 'i', 'j', 'k', 'facecolor', 'value', 'surfacecolor',
+            'carpet', 'measure', 'dimensions', 'header.values', 'cells.values', 'radius', 'title'
+        ];
+
+        for (const port of portMapping) {
+            const val = getInputValue(node.id, port);
+            if (val !== null && val !== undefined) {
+                setNested(trace, port, val);
+            }
+        }
+
+        // Apply internal UI styles
+        if (node.data.styles) {
+            const styles = node.data.styles;
+            const styleMapping: Record<string, string> = {
+                marker_color: 'marker.color',
+                marker_size: 'marker.size',
+                marker_symbol: 'marker.symbol',
+                marker_opacity: 'marker.opacity',
+                line_color: 'line.color',
+                line_width: 'line.width',
+                line_dash: 'line.dash',
+                line_shape: 'line.shape',
+                colorscale: 'colorscale',
+                showscale: 'showscale',
+                reversescale: 'reversescale',
+                hole: 'hole',
+                direction: 'direction',
+                increasing_color: 'increasing.line.color',
+                decreasing_color: 'decreasing.line.color',
+                locationmode: 'locationmode',
+                featureidkey: 'featureidkey'
+            };
+
+            const layoutMapping: Record<string, string> = {
+                geo_scope: 'geo.scope',
+                geo_projection_type: 'geo.projection.type',
+                mapbox_style: 'mapbox.style',
+                mapbox_zoom: 'mapbox.zoom'
+            };
+
+            for (const [key, path] of Object.entries(styleMapping)) {
+                if (styles[key] !== undefined && styles[key] !== null) {
+                    setNested(trace, path, styles[key]);
+                }
+            }
+
+            const layoutHints: any = {};
+            // Only generate hints if the trace type supports them
+            const supportsGeo = ['choropleth', 'scattergeo'].includes(plotlyType);
+            const supportsMapbox = ['choroplethmapbox', 'scattermapbox', 'densitymapbox'].includes(plotlyType);
+
+            for (const [key, path] of Object.entries(layoutMapping)) {
+                if (styles[key]) {
+                    const isGeoKey = key.startsWith('geo_');
+                    const isMapboxKey = key.startsWith('mapbox_');
+
+                    if ((isGeoKey && supportsGeo) || (isMapboxKey && supportsMapbox)) {
+                        setNested(layoutHints, path, styles[key]);
+                    }
+                }
+            }
+            if (Object.keys(layoutHints).length > 0) {
+                (trace as any)._layoutHints = layoutHints;
+            }
+
+            // Financial fills
+            if (styles.increasing_color) setNested(trace, 'increasing.fillcolor', styles.increasing_color);
+            if (styles.decreasing_color) setNested(trace, 'decreasing.fillcolor', styles.decreasing_color);
+        }
+
+        // Special handling for specific types
+        if (type === 'strip') {
+            trace.type = 'box';
+            trace.boxpoints = 'all';
+            trace.pointpos = 0;
+            trace.fillcolor = 'rgba(255,255,255,0)';
+            trace.line = { color: 'rgba(255,255,255,0)' };
+        } else if (plotlyType === 'indicator' && (type === 'gauge' || type === 'bullet')) {
+            trace.mode = `${type}+number`;
+        }
+
+        // Apply manual JSON config override (if still used)
+        if (node.data.config) {
+            try {
+                const config = JSON.parse(node.data.config);
+                Object.assign(trace, config);
+            } catch (e) {
+                console.warn('Invalid JSON config in AdvancedTraceNode', e);
+            }
+        }
+
+        if (values) {
+            values['trace'] = trace;
+        }
+    }
     else if (node.type === 'joiner') {
         if (!nodeValues[node.id]) nodeValues[node.id] = {};
         const values = nodeValues[node.id];
 
         const inputs = [];
-        // Iterate over all connected inputs
-        // We can just iterate over the keys of inputs
         const inputKeys = Object.keys(node.inputs).filter(k => k.startsWith('input'));
 
-        // Sort keys to maintain order
         inputKeys.sort((a, b) => {
             const numA = parseInt(a.replace('input', ''));
             const numB = parseInt(b.replace('input', ''));
@@ -1265,13 +1520,13 @@ function evaluateNode(node: NodeDefinition) {
 
         for (const key of inputKeys) {
             const val = getInputValue(node.id, key);
-            if (val) {
+            if (val !== null && val !== undefined) {
                 inputs.push(val);
             }
         }
 
         if (values) {
-            values['list'] = inputs.flat(); // Flatten in case inputs are arrays themselves
+            values['list'] = inputs.flat();
         }
     }
     else if (node.type === 'plotly') {
@@ -1281,16 +1536,63 @@ function evaluateNode(node: NodeDefinition) {
         if (values) {
             values['selectedPoint'] = node.data.selectedPoint ?? null;
             values['hoverPoint'] = node.data.hoverPoint ?? null;
-            values['data'] = getInputValue(node.id, 'data');
+
+            const rawData = getInputValue(node.id, 'data');
+            // Deep clone data to un-proxy and prevent Plotly mutations from leaking back to nodes
+            const data = rawData ? JSON.parse(JSON.stringify(rawData)) : null;
+            values['data'] = data;
 
             try {
                 const layoutInput = getInputValue(node.id, 'layout');
-                if (layoutInput) {
-                    values['layout'] = typeof layoutInput === 'string' ? JSON.parse(layoutInput) : layoutInput;
-                } else {
-                    values['layout'] = null;
-                }
-            } catch {
+                // Use a sane default layout if none provided, then deep clone
+                const defaultLayout = {
+                    margin: { t: 30, r: 20, b: 40, l: 40 },
+                    paper_bgcolor: 'transparent',
+                    plot_bgcolor: 'transparent',
+                    font: { color: '#ccc' },
+                    xaxis: { gridcolor: '#444', zerolinecolor: '#666' },
+                    yaxis: { gridcolor: '#444', zerolinecolor: '#666' },
+                    showlegend: true,
+                    legend: { x: 0, y: 1 },
+                    hovermode: 'closest',
+                    autosize: true,
+                    geo: {
+                        domain: { x: [0, 1], y: [0, 1] },
+                        projection: { type: 'equirectangular' }
+                    }
+                };
+
+                let layout = layoutInput
+                    ? JSON.parse(JSON.stringify(typeof layoutInput === 'string' ? JSON.parse(layoutInput) : layoutInput))
+                    : { ...defaultLayout };
+
+                // Merge layout hints from traces (e.g. from AdvancedTrace nodes)
+                const traces = Array.isArray(data) ? data : (data ? [data] : []);
+                traces.forEach((t: any) => {
+                    if (t && t._layoutHints) {
+                        for (const [key, value] of Object.entries(t._layoutHints)) {
+                            if (typeof value === 'object' && value !== null) {
+                                if (!layout[key] || typeof layout[key] !== 'object') {
+                                    layout[key] = {};
+                                }
+                                // Merge one level deeper for things like geo: { projection: { ... } }
+                                for (const [subKey, subValue] of Object.entries(value)) {
+                                    if (typeof subValue === 'object' && subValue !== null) {
+                                        layout[key][subKey] = { ...(layout[key][subKey] || {}), ...subValue };
+                                    } else {
+                                        layout[key][subKey] = subValue;
+                                    }
+                                }
+                            } else {
+                                layout[key] = value;
+                            }
+                        }
+                    }
+                });
+
+                values['layout'] = Object.keys(layout).length > 0 ? layout : null;
+            } catch (e) {
+                console.warn('Plotly layout evaluation error:', e);
                 values['layout'] = null;
             }
         }
@@ -1437,6 +1739,31 @@ function evaluateNode(node: NodeDefinition) {
             values['filtered'] = filtered;
         }
     }
+    else if (node.type === 'save') {
+        const store = getInputValue(node.id, 'store');
+        const inValue = getInputValue(node.id, 'in');
+
+        if (!nodeValues[node.id]) nodeValues[node.id] = {};
+        const values = nodeValues[node.id];
+
+        const prevStore = node.data.prevStore ?? false;
+
+        if (store && !prevStore) {
+            // Rising edge trigger - Snapshot the value (ensure it's deep cloned and serializable raw data)
+            try {
+                node.data.storedValue = inValue !== undefined ? JSON.parse(JSON.stringify(inValue)) : null;
+            } catch (e) {
+                console.warn('SaveNode failed to clone data:', e);
+                node.data.storedValue = inValue; // Fallback to reference if not serializable
+            }
+        }
+
+        node.data.prevStore = !!store;
+
+        if (values) {
+            values['out'] = node.data.storedValue;
+        }
+    }
     else if (node.type === 'subplot') {
         if (!nodeValues[node.id]) nodeValues[node.id] = {};
         const values = nodeValues[node.id];
@@ -1532,19 +1859,6 @@ function evaluateNode(node: NodeDefinition) {
             if (!trace || typeof trace !== 'object') return trace;
             const newTrace = JSON.parse(JSON.stringify(trace));
 
-            // Helper to set nested property
-            const setNested = (obj: any, path: string, value: any) => {
-                const keys = path.split('.');
-                let current = obj;
-                for (let i = 0; i < keys.length - 1; i++) {
-                    const key = keys[i]!;
-                    if (!current[key]) current[key] = {};
-                    current = current[key];
-                }
-                const lastKey = keys[keys.length - 1]!;
-                current[lastKey] = value;
-            };
-
             // Map flat styling keys to Plotly paths
             const mapping: Record<string, string> = {
                 marker_color: 'marker.color',
@@ -1619,20 +1933,6 @@ function evaluateNode(node: NodeDefinition) {
 
         const data = node.data.layoutConfig || {};
         const layout: any = {};
-
-        // Helper to set nested property
-        const setNested = (obj: any, path: string, value: any) => {
-            if (value === undefined || value === null || value === '') return;
-            const keys = path.split('.');
-            let current = obj;
-            for (let i = 0; i < keys.length - 1; i++) {
-                const key = keys[i]!;
-                if (!current[key]) current[key] = {};
-                current = current[key];
-            }
-            const lastKey = keys[keys.length - 1]!;
-            current[lastKey] = value;
-        };
 
         // Title
         if (data.title_text) {

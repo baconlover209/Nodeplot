@@ -11,11 +11,7 @@
           </button>
 
           <div class="example-section">
-            <select
-              @change="handleLoadExample"
-              class="example-select"
-              v-model="selectedExample"
-            >
+            <select @change="handleLoadExample" class="example-select" v-model="selectedExample">
               <option value="" disabled>Load Example Projects</option>
               <option value="scatter">Scatter Plot</option>
               <option value="bar">Bar Chart</option>
@@ -24,7 +20,8 @@
               <option value="violin">Violin Plot</option>
               <option value="sunburst">Sunburst</option>
               <option value="features">Features Demo</option>
-              <option value="map">Map View</option>
+              <option value="map">Cities Map</option>
+              <option value="usa_choropleth">USA States Map</option>
             </select>
           </div>
         </div>
@@ -34,13 +31,7 @@
         </button>
       </div>
 
-      <input
-        type="file"
-        ref="fileInput"
-        @change="handleImportFile"
-        accept=".json"
-        style="display: none"
-      />
+      <input type="file" ref="fileInput" @change="handleImportFile" accept=".json" style="display: none" />
 
       <div class="pm-content">
         <div v-if="projects.length === 0" class="no-projects">
@@ -49,18 +40,10 @@
         </div>
 
         <div v-else class="projects-grid">
-          <div
-            v-for="project in sortedProjects"
-            :key="project.id"
-            class="project-card"
-            @click="loadProject(project.id)"
-          >
+          <div v-for="project in sortedProjects" :key="project.id" class="project-card"
+            @click="loadProject(project.id)">
             <div class="project-thumbnail">
-              <img
-                v-if="project.thumbnail"
-                :src="project.thumbnail"
-                alt="Project preview"
-              />
+              <img v-if="project.thumbnail" :src="project.thumbnail" alt="Project preview" />
               <div v-else class="thumbnail-placeholder">
                 <div class="i-mdi-chart-bar"></div>
               </div>
@@ -79,25 +62,13 @@
             </div>
 
             <div class="project-actions" @click.stop>
-              <button
-                class="action-btn clone-btn"
-                @click="cloneProject(project.id)"
-                title="Clone project"
-              >
+              <button class="action-btn clone-btn" @click="cloneProject(project.id)" title="Clone project">
                 <div class="i-mdi-content-copy"></div>
               </button>
-              <button
-                class="action-btn rename-btn"
-                @click="startRename(project)"
-                title="Rename project"
-              >
+              <button class="action-btn rename-btn" @click="startRename(project)" title="Rename project">
                 <div class="i-mdi-pencil"></div>
               </button>
-              <button
-                class="action-btn delete-btn"
-                @click="deleteProject(project.id)"
-                title="Delete project"
-              >
+              <button class="action-btn delete-btn" @click="deleteProject(project.id)" title="Delete project">
                 <div class="i-mdi-trash-can-outline"></div>
               </button>
             </div>
@@ -110,21 +81,11 @@
     <div v-if="renamingProject" class="rename-modal" @click.self="cancelRename">
       <div class="rename-content">
         <h3>Rename Project</h3>
-        <input
-          v-model="renameValue"
-          type="text"
-          class="rename-input"
-          @keyup.enter="confirmRename"
-          @keyup.escape="cancelRename"
-          ref="renameInput"
-        />
+        <input v-model="renameValue" type="text" class="rename-input" @keyup.enter="confirmRename"
+          @keyup.escape="cancelRename" ref="renameInput" />
         <div class="rename-actions">
           <button class="cancel-btn" @click="cancelRename">Cancel</button>
-          <button
-            class="confirm-btn"
-            @click="confirmRename"
-            :disabled="!renameValue.trim()"
-          >
+          <button class="confirm-btn" @click="confirmRename" :disabled="!renameValue.trim()">
             Rename
           </button>
         </div>
@@ -559,11 +520,9 @@ function showNotification(message: string) {
 .project-thumbnail {
   width: 100%;
   height: 160px;
-  background: linear-gradient(
-    135deg,
-    rgba(0, 210, 255, 0.1) 0%,
-    rgba(58, 123, 213, 0.1) 100%
-  );
+  background: linear-gradient(135deg,
+      rgba(0, 210, 255, 0.1) 0%,
+      rgba(58, 123, 213, 0.1) 100%);
   display: flex;
   align-items: center;
   justify-content: center;
