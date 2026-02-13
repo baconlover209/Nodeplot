@@ -134,6 +134,8 @@ import {
   redo,
   canUndo,
   canRedo,
+  copySelection,
+  pasteNodes,
 } from "./nodeEditorState";
 import type { NodeDefinition } from "./nodeEditorState";
 import ConnectionLine from "./ConnectionLine.vue";
@@ -224,7 +226,8 @@ function onMouseMove(e: MouseEvent) {
     setPan({ x: pan.value.x + dx, y: pan.value.y + dy });
     startPan = { x: e.clientX, y: e.clientY };
   } else {
-    updateNodeDrag(e.clientX, e.clientY);
+    // Pass ctrlKey for snapping
+    updateNodeDrag(e.clientX, e.clientY, e.ctrlKey);
 
     if (connectionState.value?.isConnecting) {
       updateConnectionPreview(mousePos.value.x, mousePos.value.y);
@@ -336,16 +339,27 @@ function onKeyDown(e: KeyboardEvent) {
     }
   }
 
-  // Undo / Redo
+  // Copy (Ctrl+C)
+  if (e.ctrlKey && e.key.toLowerCase() === "c") {
+    copySelection();
+  }
+
+  // Paste (Ctrl+V)
+  if (e.ctrlKey && e.key.toLowerCase() === "v") {
+    pasteNodes(mousePos.value);
+  }
+
   // Undo / Redo
   if (e.ctrlKey) {
-    if (e.key.toLowerCase() === "z") {
+    if (e.key.toLowerCase() === "z" && e.shiftKey) {
       e.preventDefault();
-      if (e.shiftKey) {
-        redo();
-      } else {
-        undo();
-      }
+      redo();
+    } else if (e.key.toLowerCase() === "y") {
+      e.preventDefault();
+      redo();
+    } else if (e.key.toLowerCase() === "z") {
+      e.preventDefault();
+      undo();
     }
   }
 }
@@ -544,13 +558,12 @@ function openMenuAtCursor(clientX: number, clientY: number) {
   if (!canvasRef.value) return;
   const rect = canvasRef.value.getBoundingClientRect();
 
-  // UI position for the menu
   menuPos.value = {
-    x: clientX - rect.left,
-    y: clientY - rect.top,
+    x: clientX,
+    y: clientY,
   };
 
-  // World position for the node creation
+  // World position for the node creation (keep relative logic)
   creationPos.value = {
     x: (clientX - rect.left - pan.value.x) / zoom.value,
     y: (clientY - rect.top - pan.value.y) / zoom.value,
@@ -564,7 +577,11 @@ function toggleAddNodeMenuAtCenter() {
   const rect = canvasRef.value.getBoundingClientRect();
   const centerX = rect.width / 2;
   const centerY = rect.height / 2;
-  openMenuAtCursor(rect.left + centerX, rect.top + centerY);
+
+  const screenX = rect.left + centerX;
+  const screenY = rect.top + centerY;
+
+  openMenuAtCursor(screenX, screenY);
 }
 
 function onNodeSelected(type: string) {

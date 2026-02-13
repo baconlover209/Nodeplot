@@ -142,7 +142,9 @@ function toggleCollapse() {
 }
 
 function onMouseDown(e: MouseEvent) {
-  startNodeDrag(props.node.id, e.clientX, e.clientY);
+  if (e.button === 1) return;
+
+  startNodeDrag(props.node.id, e.clientX, e.clientY, e.shiftKey || e.ctrlKey);
 }
 
 function startConnect(e: MouseEvent, type: "input" | "output", key: string) {

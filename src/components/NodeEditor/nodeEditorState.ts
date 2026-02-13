@@ -55,8 +55,9 @@ export interface NodeEditorState {
         isDragging: boolean;
         nodeId: string | null;
         startMouse: Position;
-        startNode: Position;
+        startPositions: Record<string, Position>;
     };
+    clipboard: NodeDefinition[];
     connectionState: {
         isConnecting: boolean;
         sourceNodeId: string | null;
@@ -78,11 +79,12 @@ const state = reactive<NodeEditorState>({
     zoom: 1,
     pan: { x: 0, y: 0 },
     selection: [],
+    clipboard: [],
     dragState: {
         isDragging: false,
         nodeId: null,
         startMouse: { x: 0, y: 0 },
-        startNode: { x: 0, y: 0 }
+        startPositions: {}
     },
     connectionState: {
         isConnecting: false,
@@ -332,46 +334,118 @@ export function selectNode(nodeId: string, additive = false) {
     }
 }
 
-// --- Dragging Logic ---
+export function copySelection() {
+    state.clipboard = state.selection
+        .map(id => state.nodes.find(n => n.id === id))
+        .filter((n): n is NodeDefinition => !!n)
+        .map(n => JSON.parse(JSON.stringify(n)));
+}
 
-export function startNodeDrag(nodeId: string, mouseX: number, mouseY: number) {
+export function pasteNodes(mousePos?: Position) {
+    if (state.clipboard.length === 0) return;
+
+    let minX = Infinity, minY = Infinity;
+    state.clipboard.forEach(n => {
+        minX = Math.min(minX, n.position.x);
+        minY = Math.min(minY, n.position.y);
+    });
+
+    const newIds: string[] = [];
+
+    state.clipboard.forEach(n => {
+        const newNode = JSON.parse(JSON.stringify(n));
+        newNode.id = generateId();
+
+        if (mousePos) {
+            newNode.position.x = mousePos.x + (n.position.x - minX);
+            newNode.position.y = mousePos.y + (n.position.y - minY);
+        } else {
+            newNode.position.x += 20;
+            newNode.position.y += 20;
+        }
+
+        state.nodes.push(newNode);
+        newIds.push(newNode.id);
+    });
+
+    // Select new nodes
+    state.selection = newIds;
+    triggerGraphUpdate();
+    pushHistoryState();
+}
+
+export function startNodeDrag(nodeId: string, mouseX: number, mouseY: number, additive: boolean = false) {
     const node = state.nodes.find(n => n.id === nodeId);
     if (!node) return;
+
+    if (additive) {
+        if (!state.selection.includes(nodeId)) {
+            state.selection.push(nodeId);
+        }
+    } else {
+        if (!state.selection.includes(nodeId)) {
+            state.selection = [nodeId];
+        }
+    }
+
+    const startPositions: Record<string, Position> = {};
+    state.selection.forEach(id => {
+        const n = state.nodes.find(node => node.id === id);
+        if (n) {
+            startPositions[id] = { ...n.position };
+        }
+    });
 
     state.dragState = {
         isDragging: true,
         nodeId,
         startMouse: { x: mouseX, y: mouseY },
-        startNode: { ...node.position }
+        startPositions
     };
-    selectNode(nodeId);
 }
 
-export function updateNodeDrag(mouseX: number, mouseY: number) {
-    if (!state.dragState.isDragging || !state.dragState.nodeId) return;
+export function updateNodeDrag(mouseX: number, mouseY: number, snapToGrid: boolean = false) {
+    if (!state.dragState.isDragging) return;
 
-    const dx = (mouseX - state.dragState.startMouse.x) / state.zoom;
-    const dy = (mouseY - state.dragState.startMouse.y) / state.zoom;
+    let dx = (mouseX - state.dragState.startMouse.x) / state.zoom;
+    let dy = (mouseY - state.dragState.startMouse.y) / state.zoom;
 
-    updateNodePosition(state.dragState.nodeId, {
-        x: state.dragState.startNode.x + dx,
-        y: state.dragState.startNode.y + dy
+    state.selection.forEach(id => {
+        const startPos = state.dragState.startPositions[id];
+        if (startPos) {
+            let newX = startPos.x + dx;
+            let newY = startPos.y + dy;
+
+            if (snapToGrid) {
+                newX = Math.round(newX / 20) * 20;
+                newY = Math.round(newY / 20) * 20;
+            }
+
+            updateNodePosition(id, { x: newX, y: newY });
+        }
     });
 }
 
 export function endNodeDrag() {
-    if (state.dragState.isDragging && state.dragState.nodeId) {
-        const node = state.nodes.find(n => n.id === state.dragState.nodeId);
-        if (node) {
-            // Check if position changed meaningfully
-            const start = state.dragState.startNode;
-            if (node.position.x !== start.x || node.position.y !== start.y) {
-                pushHistoryState();
+    if (state.dragState.isDragging) {
+        let anyMoved = false;
+        state.selection.forEach(id => {
+            const node = state.nodes.find(n => n.id === id);
+            const start = state.dragState.startPositions[id];
+            if (node && start) {
+                if (node.position.x !== start.x || node.position.y !== start.y) {
+                    anyMoved = true;
+                }
             }
+        });
+
+        if (anyMoved) {
+            pushHistoryState();
         }
     }
     state.dragState.isDragging = false;
     state.dragState.nodeId = null;
+    state.dragState.startPositions = {};
 }
 
 // --- Connection Logic ---

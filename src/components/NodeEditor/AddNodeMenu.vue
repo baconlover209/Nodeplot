@@ -1,97 +1,94 @@
 <template>
-  <div
-    v-if="show"
-    class="add-node-menu"
-    :style="menuStyle"
-    ref="menuRef"
-    @mousedown.stop
-    @wheel.stop
-  >
-    <!-- Search Bar -->
-    <div class="search-container">
-      <input
-        ref="searchInput"
-        v-model="searchQuery"
-        placeholder="Search nodes..."
-        @keydown.esc="close"
-        @keydown.down.prevent="onArrowDown"
-        @keydown.up.prevent="onArrowUp"
-        @keydown.right.prevent="onArrowRight"
-        @keydown.left.prevent="onArrowLeft"
-        @keydown.enter="onEnter"
-      />
-    </div>
-
-    <!-- Main List (Categories or Results) -->
-    <div class="menu-content" ref="menuContentRef">
-      <!-- Results View -->
-      <template v-if="searchQuery">
-        <div
-          v-for="(type, index) in filteredNodes"
-          :key="type"
-          class="menu-item"
-          :class="{ active: index === nodeIndex }"
-          @click="selectNode(type)"
-          @mouseenter="nodeIndex = index"
-        >
-          <div
-            class="category-indicator"
-            :style="{ backgroundColor: getNodeColor(type) }"
-          ></div>
-          <span class="node-label">{{ formatNodeType(type) }}</span>
+  <Teleport to="body">
+    <div v-if="show" class="add-node-menu-wrapper" @mousedown.stop @wheel.stop>
+      <div class="add-node-menu" :style="menuStyle" ref="menuRef">
+        <!-- Search Bar -->
+        <div class="search-container">
+          <input
+            ref="searchInput"
+            v-model="searchQuery"
+            placeholder="Search nodes..."
+            @keydown.esc="close"
+            @keydown.down.prevent="onArrowDown"
+            @keydown.up.prevent="onArrowUp"
+            @keydown.right.prevent="onArrowRight"
+            @keydown.left.prevent="onArrowLeft"
+            @keydown.enter="onEnter"
+          />
         </div>
-        <div v-if="filteredNodes.length === 0" class="no-results">
-          No nodes found
-        </div>
-      </template>
 
-      <!-- Category View -->
-      <template v-else>
+        <!-- Main List (Categories or Results) -->
+        <div class="menu-content" ref="menuContentRef">
+          <!-- Results View -->
+          <template v-if="searchQuery">
+            <div
+              v-for="(type, index) in filteredNodes"
+              :key="type"
+              class="menu-item"
+              :class="{ active: index === nodeIndex }"
+              @click="selectNode(type)"
+              @mouseenter="nodeIndex = index"
+            >
+              <div
+                class="category-indicator"
+                :style="{ backgroundColor: getNodeColor(type) }"
+              ></div>
+              <span class="node-label">{{ formatNodeType(type) }}</span>
+            </div>
+            <div v-if="filteredNodes.length === 0" class="no-results">
+              No nodes found
+            </div>
+          </template>
+
+          <!-- Category View -->
+          <template v-else>
+            <div
+              v-for="(category, index) in NODE_CATEGORIES"
+              :key="category.label"
+              class="menu-item has-submenu"
+              :class="{ active: !inSubmenu && index === categoryIndex }"
+              :ref="(el) => setCategoryRef(el, index)"
+              @mouseenter="handleMouseEnterCategory($event, category, index)"
+              @mouseleave="handleMouseLeave"
+            >
+              <div
+                class="category-indicator"
+                :style="{ backgroundColor: category.color }"
+              ></div>
+              <span class="node-label">{{ category.label }}</span>
+              <span class="chevron">›</span>
+            </div>
+          </template>
+        </div>
+
         <div
-          v-for="(category, index) in NODE_CATEGORIES"
-          :key="category.label"
-          class="menu-item has-submenu"
-          :class="{ active: !inSubmenu && index === categoryIndex }"
-          :ref="(el) => setCategoryRef(el, index)"
-          @mouseenter="handleMouseEnterCategory($event, category, index)"
+          v-if="activeCategory"
+          class="submenu shadow-premium"
+          :style="submenuStyle"
+          @mouseenter="handleMouseEnterSubmenu"
           @mouseleave="handleMouseLeave"
         >
           <div
-            class="category-indicator"
-            :style="{ backgroundColor: category.color }"
-          ></div>
-          <span class="node-label">{{ category.label }}</span>
-          <span class="chevron">›</span>
+            v-for="(type, index) in activeCategory.nodeTypes"
+            :key="type"
+            class="menu-item"
+            :class="{ active: inSubmenu && index === nodeIndex }"
+            @click="selectNode(type)"
+            @mouseenter="
+              inSubmenu = true;
+              nodeIndex = index;
+            "
+          >
+            <div
+              class="category-indicator"
+              :style="{ backgroundColor: activeCategory.color }"
+            ></div>
+            <span class="node-label">{{ formatNodeType(type) }}</span>
+          </div>
         </div>
-      </template>
-    </div>
-
-    <div
-      v-if="activeCategory"
-      class="submenu shadow-premium"
-      :style="submenuStyle"
-      @mouseenter="handleMouseEnterSubmenu"
-      @mouseleave="handleMouseLeave"
-    >
-      <div
-        v-for="(type, index) in activeCategory.nodeTypes"
-        :key="type"
-        class="menu-item"
-        :class="{ active: inSubmenu && index === nodeIndex }"
-        @click="selectNode(type)"
-        @mouseenter="
-          inSubmenu = true;
-          nodeIndex = index;
-        "
-      >
-        <div
-          class="category-indicator"
-          :style="{ backgroundColor: activeCategory.color }"
-        ></div>
-        <span class="node-label">{{ formatNodeType(type) }}</span>
       </div>
     </div>
-  </div>
+  </Teleport>
 </template>
 
 <script setup lang="ts">
@@ -117,7 +114,6 @@ const emit = defineEmits<{
 
 const menuRef = ref<HTMLElement | null>(null);
 const searchInput = ref<HTMLInputElement | null>(null);
-const searchResultRefs = ref<HTMLElement[]>([]);
 const categoryRefs = ref<HTMLElement[]>([]);
 
 const searchQuery = ref("");
@@ -130,17 +126,39 @@ const categoryIndex = ref(0);
 const nodeIndex = ref(0);
 const inSubmenu = ref(false);
 
-const menuStyle = computed(() => ({
-  left: `${props.x}px`,
-  top: `${props.y}px`,
-}));
+const menuStyle = computed(() => {
+  let left = adjustedPos.value ? adjustedPos.value.x : props.x;
+  let top = adjustedPos.value ? adjustedPos.value.y : props.y;
 
-const submenuStyle = computed(() => ({
-  top: `${submenuY.value}px`,
-  left: "100%",
-  paddingLeft: "4px", // Gap buffer
-  marginLeft: "-2px", // Overlap slightly to ensure mouse transition
-}));
+  return {
+    left: `${left}px`,
+    top: `${top}px`,
+    position: "fixed" as const, // Ensure fixed positioning for Teleport
+  };
+});
+
+const adjustedPos = ref<{ x: number; y: number } | null>(null);
+
+const submenuStyle = computed(() => {
+  const style: Record<string, string> = {
+    top: `${submenuY.value}px`,
+    position: "absolute" as const,
+  };
+
+  if (submenuFlipLeft.value) {
+    style.right = "100%";
+    style.paddingRight = "4px";
+    style.marginRight = "-2px";
+  } else {
+    style.left = "100%";
+    style.paddingLeft = "4px";
+    style.marginLeft = "-2px";
+  }
+
+  return style;
+});
+
+const submenuFlipLeft = ref(false);
 
 const allNodeTypes = computed(() => {
   return NODE_CATEGORIES.flatMap((c) => c.nodeTypes);
@@ -158,7 +176,7 @@ const filteredNodes = computed(() => {
   );
 });
 
-// Watch visibility to reset state
+// Watch visibility to reset state and position
 watch(
   () => props.show,
   (newVal) => {
@@ -169,16 +187,47 @@ watch(
         clearTimeout(closeTimer.value);
         closeTimer.value = null;
       }
+
+      // Reset adjusted pos initially
+      adjustedPos.value = { x: props.x, y: props.y };
+
       nextTick(() => {
+        adjustMenuPosition();
         searchInput.value?.focus();
-        // If categories exist, select first one
+        // If categories exist, select first one but don't force open submenu
         if (NODE_CATEGORIES.length > 0) {
-          syncActiveCategory();
+          // "if (NODE_CATEGORIES.length > 0) syncActiveCategory();" was original.
+          // syncActiveCategory();
         }
       });
     }
   }
 );
+
+function adjustMenuPosition() {
+  if (!menuRef.value) return;
+  const rect = menuRef.value.getBoundingClientRect();
+  const winWidth = window.innerWidth;
+  const winHeight = window.innerHeight;
+
+  let x = props.x;
+  let y = props.y;
+
+  // Flip Up if bottom overflows
+  if (y + rect.height > winHeight) {
+    y = props.y - rect.height;
+    // Clamp top
+    if (y < 0) y = 0;
+  }
+
+  // Flip Left if right overflows
+  if (x + rect.width > winWidth) {
+    x = props.x - rect.width;
+    if (x < 0) x = 0;
+  }
+
+  adjustedPos.value = { x, y };
+}
 
 // Watch search to reset indices
 watch(searchQuery, () => {
@@ -190,6 +239,7 @@ watch(searchQuery, () => {
     clearTimeout(closeTimer.value);
     closeTimer.value = null;
   }
+  nextTick(() => adjustMenuPosition()); // Size might change
 });
 
 function resetNavigation() {
@@ -197,6 +247,7 @@ function resetNavigation() {
   nodeIndex.value = 0;
   inSubmenu.value = false;
   activeCategory.value = null;
+  submenuFlipLeft.value = false;
 }
 
 function formatNodeType(type: string) {
@@ -209,10 +260,6 @@ function setCategoryRef(el: any, index: number) {
   if (el) categoryRefs.value[index] = el as HTMLElement;
 }
 
-function setSearchResultRef(el: any, index: number) {
-  if (el) searchResultRefs.value[index] = el as HTMLElement;
-}
-
 function updateSubmenuPosition() {
   const el = categoryRefs.value[categoryIndex.value];
   if (el && menuRef.value) {
@@ -220,6 +267,18 @@ function updateSubmenuPosition() {
     const menuRect = menuRef.value.getBoundingClientRect();
     const itemRect = el.getBoundingClientRect();
     submenuY.value = itemRect.top - menuRect.top - 4; // Align with top padding diff
+
+    // Check availability for submenu to the right
+    const winWidth = window.innerWidth;
+    // Assume submenu width ~180px plus padding
+    const spaceRight = winWidth - menuRect.right;
+
+    if (spaceRight < 190) {
+      // 180 + buffer
+      submenuFlipLeft.value = true;
+    } else {
+      submenuFlipLeft.value = false;
+    }
 
     // Auto scroll category into view
     el.scrollIntoView({ block: "nearest" });
@@ -231,7 +290,7 @@ function updateSubmenuPosition() {
 
 function syncActiveCategory() {
   activeCategory.value = NODE_CATEGORIES[categoryIndex.value] as NodeCategory;
-  updateSubmenuPosition();
+  nextTick(() => updateSubmenuPosition());
 }
 
 // Mouse Handlers
@@ -388,14 +447,24 @@ onUnmounted(() => {
 </script>
 
 <style scoped>
+.add-node-menu-wrapper {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 9999;
+  pointer-events: none;
+}
+
 .add-node-menu {
-  position: absolute;
+  pointer-events: auto;
+  position: fixed;
   width: 200px;
   background: #2b2b2b;
   border: 1px solid #444;
   border-radius: 8px;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
-  z-index: 1000;
   display: flex;
   flex-direction: column;
   overflow: visible;
