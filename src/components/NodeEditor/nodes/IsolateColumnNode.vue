@@ -61,6 +61,7 @@ import {
   triggerGraphUpdate,
   getNodeValues,
   nodeEditorState,
+  pushHistoryState,
 } from "../nodeEditorState";
 
 const props = defineProps<{
@@ -86,6 +87,7 @@ if (props.node.data.columnIndex === undefined) {
 
 function handleColumnChange() {
   triggerGraphUpdate();
+  pushHistoryState();
 }
 
 // Check if index input is connected

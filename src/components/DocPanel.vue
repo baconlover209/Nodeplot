@@ -38,9 +38,6 @@ const currentTab = ref<"plotly" | "guide">("plotly");
 const rawGuide = ref("");
 
 const renderedGuide = computed(() => {
-  // marked.parse can be sync or async. With the default options it returns a string (sync) or Promise<string> (async)
-  // We force it to be treated as string here or handle the promise if it is one.
-  // However, marked 4+ parses synchronously by default unless using async extensions.
   const result = marked.parse(rawGuide.value);
   return result as string;
 });

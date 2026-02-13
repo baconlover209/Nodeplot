@@ -78,6 +78,7 @@ import {
   registerSocketPosition,
   getNodeColor,
   layoutVersion,
+  pushHistoryState,
 } from "./nodeEditorState";
 import type { NodeDefinition } from "./nodeEditorState";
 
@@ -109,6 +110,7 @@ function saveTitle() {
   if (isEditing.value) {
     if (editTitle.value.trim()) {
       props.node.label = editTitle.value.trim();
+      pushHistoryState();
     }
     isEditing.value = false;
   }
@@ -136,6 +138,7 @@ function toggleCollapse() {
   props.node.collapsed = !props.node.collapsed;
   // Update socket positions after layout change
   nextTick(() => updateSocketPositions());
+  pushHistoryState();
 }
 
 function onMouseDown(e: MouseEvent) {

@@ -278,6 +278,7 @@ import {
   type NodeDefinition,
   triggerGraphUpdate,
   removeConnectionsToInput,
+  pushHistoryState,
 } from "../nodeEditorState";
 
 const props = defineProps<{
@@ -372,6 +373,7 @@ function updateMode() {
   props.node.data.isManual = localIsManual.value;
   updateInputs();
   updateData(); // trigger eval
+  pushHistoryState();
 }
 
 function updateInputs() {
@@ -402,6 +404,7 @@ function updateData() {
   // Save current manual config to node data so it persists
   props.node.data.manualConfig = { ...config };
   triggerGraphUpdate();
+  pushHistoryState();
 }
 
 watch(

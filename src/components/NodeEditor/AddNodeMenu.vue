@@ -9,7 +9,6 @@
   >
     <!-- Search Bar -->
     <div class="search-container">
-      <div class="search-icon">🔍</div>
       <input
         ref="searchInput"
         v-model="searchQuery"

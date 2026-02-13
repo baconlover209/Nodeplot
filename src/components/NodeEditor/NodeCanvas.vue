@@ -76,6 +76,27 @@
       <div class="zoom-level">{{ Math.round(zoom * 100) }}%</div>
     </div>
 
+    <div class="history-controls">
+      <button
+        class="history-btn"
+        :class="{ disabled: !canUndo }"
+        :disabled="!canUndo"
+        @click="undo"
+        title="Undo (Ctrl+Z)"
+      >
+        <div class="i-mdi-undo"></div>
+      </button>
+      <button
+        class="history-btn"
+        :class="{ disabled: !canRedo }"
+        :disabled="!canRedo"
+        @click="redo"
+        title="Redo (Ctrl+Y)"
+      >
+        <div class="i-mdi-redo"></div>
+      </button>
+    </div>
+
     <!-- Add Node Menu (Blender style) -->
     <AddNodeMenu
       :show="showAddNodeMenu"
@@ -109,6 +130,10 @@ import {
   NODE_TYPES,
   duplicateNode,
   registerNodeType,
+  undo,
+  redo,
+  canUndo,
+  canRedo,
 } from "./nodeEditorState";
 import type { NodeDefinition } from "./nodeEditorState";
 import ConnectionLine from "./ConnectionLine.vue";
@@ -307,6 +332,19 @@ function onKeyDown(e: KeyboardEvent) {
       if (newIds.length > 0) {
         clearSelection();
         newIds.forEach((id) => nodeEditorState.selection.push(id));
+      }
+    }
+  }
+
+  // Undo / Redo
+  // Undo / Redo
+  if (e.ctrlKey) {
+    if (e.key.toLowerCase() === "z") {
+      e.preventDefault();
+      if (e.shiftKey) {
+        redo();
+      } else {
+        undo();
       }
     }
   }
@@ -829,5 +867,58 @@ function createNodeAtPos(type: string, pos: { x: number; y: number }) {
   text-align: right;
   font-variant-numeric: tabular-nums;
   font-weight: 500;
+}
+</style>
+
+<style scoped>
+.history-controls {
+  position: absolute;
+  bottom: 20px;
+  left: 20px;
+  background: rgba(30, 30, 30, 0.7);
+  padding: 8px; /* Slightly less padding for just icons */
+  border-radius: 10px;
+  color: #fff;
+  pointer-events: auto;
+  display: flex;
+  align-items: center;
+  gap: 8px; /* Closer together */
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+  z-index: 100;
+}
+
+.history-btn {
+  background: rgba(255, 255, 255, 0.05);
+  color: #ccc;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  width: 34px;
+  height: 34px;
+  border-radius: 6px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+  font-size: 18px;
+}
+
+.history-btn:hover:not(.disabled) {
+  background: rgba(255, 255, 255, 0.15);
+  color: #fff;
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
+.history-btn:active:not(.disabled) {
+  background: rgba(255, 255, 255, 0.2);
+  transform: translateY(1px);
+}
+
+.history-btn.disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+  background: transparent;
+  border-color: transparent;
 }
 </style>

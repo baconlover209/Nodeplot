@@ -99,12 +99,103 @@ const state = reactive<NodeEditorState>({
     showDocPanel: false
 });
 
+// --- History Management ---
+
+export interface HistorySnapshot {
+    nodes: NodeDefinition[];
+    connections: Connection[];
+}
+
+const history = ref<HistorySnapshot[]>([]);
+const historyIndex = ref(-1);
+let transactionDepth = 0;
+
+export const canUndo = computed(() => historyIndex.value > 0);
+export const canRedo = computed(() => historyIndex.value < history.value.length - 1);
+
+function getSnapshot(): HistorySnapshot {
+    return {
+        nodes: JSON.parse(JSON.stringify(state.nodes)),
+        connections: JSON.parse(JSON.stringify(state.connections))
+    };
+}
+
+export function pushHistoryState() {
+    if (transactionDepth > 0) return;
+
+    const currentSnapshot = getSnapshot();
+
+    // Check if identical to last history state to avoid duplicates
+    if (historyIndex.value >= 0) {
+        const lastSnapshot = history.value[historyIndex.value];
+        // Simple JSON comparison is sufficient here as key order typically remains stable
+        // and we want to catch "no-op" updates
+        if (JSON.stringify(currentSnapshot) === JSON.stringify(lastSnapshot)) {
+            return;
+        }
+    }
+
+    // Remove any redo history
+    if (historyIndex.value < history.value.length - 1) {
+        history.value = history.value.slice(0, historyIndex.value + 1);
+    }
+
+    history.value.push(currentSnapshot);
+    historyIndex.value++;
+
+    // Limit history size
+    if (history.value.length > 50) {
+        history.value.shift();
+        historyIndex.value--;
+    }
+}
+
+export function undo() {
+    if (historyIndex.value > 0) {
+        historyIndex.value--;
+        const snapshot = history.value[historyIndex.value];
+        restoreSnapshot(snapshot);
+    }
+}
+
+export function redo() {
+    if (historyIndex.value < history.value.length - 1) {
+        historyIndex.value++;
+        const snapshot = history.value[historyIndex.value];
+        restoreSnapshot(snapshot);
+    }
+}
+
+function restoreSnapshot(snapshot: HistorySnapshot) {
+    // We need to match the reactive structure
+    // Replacing the array contents triggers reactivity
+    state.nodes = JSON.parse(JSON.stringify(snapshot.nodes));
+    state.connections = JSON.parse(JSON.stringify(snapshot.connections));
+    triggerGraphUpdate();
+}
+
+export function beginTransaction() {
+    transactionDepth++;
+}
+
+export function endTransaction() {
+    transactionDepth--;
+    if (transactionDepth <= 0) {
+        transactionDepth = 0;
+        pushHistoryState();
+    }
+}
+
+// Initialize history with initial state
+pushHistoryState();
+
 // --- Actions ---
 
 export function addNode(node: NodeDefinition) {
     if (state.nodes.some(n => n.id === node.id)) return;
     state.nodes.push(node);
     triggerGraphUpdate();
+    pushHistoryState();
 }
 
 export function clearGraph() {
@@ -115,6 +206,7 @@ export function clearGraph() {
     for (const key in nodeValues) delete nodeValues[key];
     syncExecutionState(); // Sync clears
     triggerGraphUpdate();
+    pushHistoryState();
 }
 
 export function removeNode(nodeId: string) {
@@ -126,6 +218,7 @@ export function removeNode(nodeId: string) {
         state.selection = state.selection.filter((id) => id !== nodeId);
     }
     triggerGraphUpdate();
+    pushHistoryState();
 }
 
 export function updateNodePosition(id: string, position: Position) {
@@ -150,29 +243,35 @@ export function duplicateNode(nodeId: string) {
     state.nodes.push(newNode);
     state.selection = [newNode.id];
     triggerGraphUpdate();
+    pushHistoryState();
     return newNode.id;
 }
 
 export const NODE_CATEGORIES = [
     {
-        label: 'Transforms',
-        color: '#00D2FF', // Teal (Dark Turquoise)
-        nodeTypes: ['math', 'range', 'switch', 'logic', 'compare', 'filter', 'isolateColumn', 'if']
-    },
-    {
         label: 'Inputs',
         color: '#d7d7d7ff', // Light Grey
-        nodeTypes: ['csvInput', 'input', 'constant', 'number', 'color', 'chartEvent', 'link']
+        nodeTypes: ['input', 'constant', 'number', 'color', 'csvInput', 'link']
     },
     {
-        label: 'Outputs',
-        color: '#00ff88', // Green
-        nodeTypes: ['display']
+        label: 'Logic & Math',
+        color: '#00D2FF', // Teal
+        nodeTypes: ['math', 'logic', 'compare', 'if', 'switch', 'range', 'filter']
     },
     {
-        label: 'Ploting',
+        label: 'Data',
+        color: '#F4B400', // Gold/Orange
+        nodeTypes: ['isolateColumn', 'joiner', 'chartEvent']
+    },
+    {
+        label: 'Graphing',
         color: '#CC33FF', // Purple
-        nodeTypes: ['trace', 'joiner', 'plotly', 'config', 'subplot', 'layoutNode', 'styling']
+        nodeTypes: ['trace', 'subplot', 'layoutNode', 'config', 'styling']
+    },
+    {
+        label: 'Output',
+        color: '#00ff88', // Green
+        nodeTypes: ['plotly', 'display']
     }
 ];
 
@@ -193,12 +292,14 @@ export function addConnection(connection: Connection) {
     if (!exists) {
         state.connections.push(connection);
         triggerGraphUpdate();
+        pushHistoryState();
     }
 }
 
 export function removeConnection(connectionId: string) {
     state.connections = state.connections.filter((c) => c.id !== connectionId);
     triggerGraphUpdate();
+    pushHistoryState();
 }
 
 export function removeConnectionsToInput(nodeId: string, inputName: string) {
@@ -206,6 +307,7 @@ export function removeConnectionsToInput(nodeId: string, inputName: string) {
         (c) => !(c.targetNodeId === nodeId && c.targetPort === inputName)
     );
     triggerGraphUpdate();
+    pushHistoryState();
 }
 
 export function setZoom(zoom: number) {
@@ -258,6 +360,16 @@ export function updateNodeDrag(mouseX: number, mouseY: number) {
 }
 
 export function endNodeDrag() {
+    if (state.dragState.isDragging && state.dragState.nodeId) {
+        const node = state.nodes.find(n => n.id === state.dragState.nodeId);
+        if (node) {
+            // Check if position changed meaningfully
+            const start = state.dragState.startNode;
+            if (node.position.x !== start.x || node.position.y !== start.y) {
+                pushHistoryState();
+            }
+        }
+    }
     state.dragState.isDragging = false;
     state.dragState.nodeId = null;
 }
