@@ -13,6 +13,7 @@
     "@types/plotly.js": "^3.0.9",
     "ag-grid-community": "^35.1.0",
     "ag-grid-vue3": "^35.1.0",
+    "marked": "^17.0.2",
     "monaco-editor": "^0.55.1",
     "papaparse": "^5.5.3",
     "plotly.js-dist-min": "^3.3.1",

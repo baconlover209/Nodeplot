@@ -13,12 +13,7 @@ export interface ControlItem {
 export interface ControlTile {
     id: string;
     label: string;
-    position: Position; // Grid position (row, col) or pixel? Lets use pixel for free drag, or grid index. 
-    // The prompt says "grid view" but also "fully rearrangable". 
-    // Let's stick to a list of tiles that can be reordered, but maybe "position" is just order index?
-    // Actually, "grid view with tiles" usually implies 2D layout. 
-    // Let's use a flexible layout like a dashboard. 
-    // For simplicity first: A list of tiles.
+    position: Position;
     layout: 'vertical' | 'horizontal' | 'grid2x2';
     items: ControlItem[];
     width?: number;
@@ -66,6 +61,7 @@ export interface NodeEditorState {
         isConnecting: boolean;
         sourceNodeId: string | null;
         sourcePort: string | null;
+        sourceType: 'input' | 'output' | null;
         startX: number;
         startY: number;
         endX: number;
@@ -92,6 +88,7 @@ const state = reactive<NodeEditorState>({
         isConnecting: false,
         sourceNodeId: null,
         sourcePort: null,
+        sourceType: null,
         startX: 0,
         startY: 0,
         endX: 0,
@@ -173,7 +170,7 @@ export const NODE_CATEGORIES = [
         nodeTypes: ['display']
     },
     {
-        label: 'Ploting', // Note: user spelled it 'ploting' in request, but let's use 'Plotting' unless they strictly want that
+        label: 'Ploting',
         color: '#CC33FF', // Purple
         nodeTypes: ['trace', 'joiner', 'plotly', 'config', 'subplot', 'layoutNode', 'styling']
     }
@@ -267,11 +264,12 @@ export function endNodeDrag() {
 
 // --- Connection Logic ---
 
-export function startConnection(nodeId: string, port: string, x: number, y: number) {
+export function startConnection(nodeId: string, port: string, type: 'input' | 'output', x: number, y: number) {
     state.connectionState = {
         isConnecting: true,
         sourceNodeId: nodeId,
         sourcePort: port,
+        sourceType: type,
         startX: x,
         startY: y,
         endX: x,
@@ -323,16 +321,14 @@ const nodeValues = reactive<Record<string, Record<string, any>>>({});
 export const getNodeValues = computed(() => nodeValues);
 
 export function getConnectionValue(connectionId: string) {
-    // For UI feedback, we can look at state.connections, but for values we look at nodeValues
     const conn = state.connections.find(c => c.id === connectionId);
     if (!conn) return null;
     const values = nodeValues[conn.sourceNodeId];
     return values ? values[conn.sourcePort] : null;
 }
 
-// --- Execution State (Snapshot) ---
 let executionNodes: NodeDefinition[] = [];
-let executionConnections: Connection[] = []; // renamed to avoid conflict with imported interface if any, but local var is fine
+let executionConnections: Connection[] = [];
 
 function syncExecutionState() {
     executionNodes = [...state.nodes];
@@ -685,7 +681,10 @@ function evaluateNode(node: NodeDefinition) {
 
         // Get the CSV data input
         const csvData = getInputValue(node.id, 'csvData');
-        const columnIndex = node.data.columnIndex ?? 0;
+
+        // Check for index override from input
+        const indexInput = getInputValue(node.id, 'index');
+        const columnIndex = indexInput !== null ? Number(indexInput) : (node.data.columnIndex ?? 0);
 
         if (values) {
             if (csvData && Array.isArray(csvData) && csvData.length > 0) {
@@ -833,11 +832,6 @@ function evaluateNode(node: NodeDefinition) {
         // Merge Config Input
         const configInput = getInputValue(node.id, 'config');
         if (configInput) {
-            // naive deep merge or just assign? Plotly handles extra keys fine usually.
-            // But we need to be careful not to overwrite data arrays if config has them (unlikely from ConfigNode)
-            // Let's do a shallow merge of top level keys, and maybe one level deep for marker/line?
-            // Actually, Lodash merge would be best but we might not have it.
-            // Let's implement a simple deep merge or just copy properties.
             const mergeFn = (target: any, source: any) => {
                 for (const key in source) {
                     if (source[key] instanceof Object && key in target && target[key] instanceof Object) {
@@ -926,9 +920,6 @@ function evaluateNode(node: NodeDefinition) {
                 if (markerColor) trace.marker.color = markerColor;
                 if (markerSize) trace.marker.size = markerSize;
             }
-            // mode is relevant for scattergeo (lines/markers) so we don't necessarily delete it,
-            // but the default 'lines+markers' is usually fine.
-            // If the user wants to change it, they can use the UI mode selector or config.
         } else if (type === 'choropleth') {
             const locations = getInputValue(node.id, 'locations');
             const z = getInputValue(node.id, 'z');
@@ -976,28 +967,12 @@ function evaluateNode(node: NodeDefinition) {
             if (y) trace.y = y;
             if (text) trace.text = text;
             if (jitter) trace.jitter = jitter;
-
-            // Strip plot is officially 'box' with boxpoints='all', jitter, and pointpos=0 in some contexts, 
-            // OR it can be a scatter with mode='markers' and jitter?
-            // Plotly interprets 'box' with boxpoints='all' and jitter as a strip plot.
-            // But let's check if Plotly has a dedicated 'strip' type? 
-            // Actually, Plotly.js usually does strip plots via Box traces with particular settings
-            // OR Scatter traces with jitter (which scatter doesn't natively support easy jitter without manual calc).
-            // The standard way is type: 'box', boxpoints: 'all', jitter: 0.3, pointpos: 0.
-
-            // However, the user asked for "strip plot". 
-            // If we use type='box', we need to override the type in the trace object IF the user selected 'strip'.
             trace.type = 'box';
             trace.boxpoints = 'all';
             trace.jitter = jitter ?? 0.3;
             trace.pointpos = 0;
-            // distinct from regular box plot
             trace.fillcolor = 'rgba(255,255,255,0)';
-            trace.line = { color: 'rgba(255,255,255,0)' }; // Hide the box itself
-
-            // Wait, if we hide the box, we just get points. 
-            // If the user requested 'strip', they probably want just the points resembling a strip plot.
-
+            trace.line = { color: 'rgba(255,255,255,0)' };
         } else if (type === 'violin') {
             const x = getInputValue(node.id, 'x');
             const y = getInputValue(node.id, 'y');
@@ -1114,21 +1089,12 @@ function evaluateNode(node: NodeDefinition) {
         }
     }
     else if (node.type === 'plotly') {
-        // Plotly node is mostly a consumer, but it produces events
-        // Events are handled by the component updating node.data, 
-        // which then triggers update.
-        // But we should expose those events in nodeValues for downstream nodes
-
         if (!nodeValues[node.id]) nodeValues[node.id] = {};
         const values = nodeValues[node.id];
 
         if (values) {
-            // Read from node.data which is updated by the component
             values['selectedPoint'] = node.data.selectedPoint ?? null;
             values['hoverPoint'] = node.data.hoverPoint ?? null;
-
-            // Pass through inputs for debugging or chaining? 
-            // Maybe not necessary, but good to have data available
             values['data'] = getInputValue(node.id, 'data');
 
             try {
@@ -1150,8 +1116,6 @@ function evaluateNode(node: NodeDefinition) {
         let result: any = false;
 
         const compareOp = (valA: any, valB: any, operation: string) => {
-            // Basic type coercion for comparison might be needed if strings vs numbers
-            // But let's assume JS loose typing or strict? JS loose is usually what users expect in low-code (e.g. "5" == 5)
             switch (operation) {
                 case '>': return valA > valB;
                 case '<': return valA < valB;

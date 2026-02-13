@@ -1,11 +1,18 @@
 <template>
-  <BaseNode :node="node" :selected="selected" @connect-start="$emit('connect-start', $event)"
-    @connect-end="$emit('connect-end', $event)" @socket-click="$emit('socket-click', $event)">
+  <BaseNode
+    :node="node"
+    :selected="selected"
+    @connect-start="$emit('connect-start', $event)"
+    @connect-end="$emit('connect-end', $event)"
+    @socket-click="$emit('socket-click', $event)"
+  >
     <div class="config-node-content">
       <div class="header-row">
-        <span class="mode-label">Mode: {{ localIsManual ? 'Manual' : 'Ports' }}</span>
+        <span class="mode-label"
+          >Mode: {{ localIsManual ? "Manual" : "Ports" }}</span
+        >
         <label class="switch">
-          <input type="checkbox" v-model="localIsManual" @change="updateMode">
+          <input type="checkbox" v-model="localIsManual" @change="updateMode" />
           <span class="slider round"></span>
         </label>
       </div>
@@ -13,15 +20,30 @@
       <div v-if="localIsManual" class="manual-controls" @wheel.stop>
         <div class="control-group">
           <label>Name</label>
-          <input type="text" v-model="config.name" @change="updateData" placeholder="Trace Name">
+          <input
+            type="text"
+            v-model="config.name"
+            @change="updateData"
+            placeholder="Trace Name"
+          />
         </div>
 
         <div class="control-section">
           <div class="section-title">Line</div>
           <div class="control-row">
-            <input type="text" v-model="config.line_color" @change="updateData" placeholder="Color">
-            <input type="number" v-model.number="config.line_width" @change="updateData" placeholder="Width"
-              style="width: 50px">
+            <input
+              type="text"
+              v-model="config.line_color"
+              @change="updateData"
+              placeholder="Color"
+            />
+            <input
+              type="number"
+              v-model.number="config.line_width"
+              @change="updateData"
+              placeholder="Width"
+              style="width: 50px"
+            />
           </div>
           <div class="control-row">
             <select v-model="config.line_dash" @change="updateData">
@@ -44,14 +66,35 @@
         <div class="control-section">
           <div class="section-title">Marker</div>
           <div class="control-row">
-            <input type="text" v-model="config.marker_color" @change="updateData" placeholder="Color">
-            <input type="number" v-model.number="config.marker_size" @change="updateData" placeholder="Size"
-              style="width: 50px">
+            <input
+              type="text"
+              v-model="config.marker_color"
+              @change="updateData"
+              placeholder="Color"
+            />
+            <input
+              type="number"
+              v-model.number="config.marker_size"
+              @change="updateData"
+              placeholder="Size"
+              style="width: 50px"
+            />
           </div>
           <div class="control-row">
-            <input type="text" v-model="config.marker_symbol" @change="updateData" placeholder="Symbol (circle)">
-            <input type="number" v-model.number="config.marker_opacity" @change="updateData" placeholder="Opacity (0-1)"
-              step="0.1" style="width: 60px">
+            <input
+              type="text"
+              v-model="config.marker_symbol"
+              @change="updateData"
+              placeholder="Symbol (circle)"
+            />
+            <input
+              type="number"
+              v-model.number="config.marker_opacity"
+              @change="updateData"
+              placeholder="Opacity (0-1)"
+              step="0.1"
+              style="width: 60px"
+            />
           </div>
         </div>
 
@@ -66,7 +109,12 @@
               <option value="tonextx">To Next X</option>
               <option value="toself">To Self</option>
             </select>
-            <input type="text" v-model="config.fillcolor" @change="updateData" placeholder="Fill Color">
+            <input
+              type="text"
+              v-model="config.fillcolor"
+              @change="updateData"
+              placeholder="Fill Color"
+            />
           </div>
         </div>
 
@@ -82,19 +130,49 @@
             </select>
           </div>
           <div class="control-row">
-            <input type="number" v-model.number="config.textfont_size" @change="updateData" placeholder="Font Size">
-            <input type="text" v-model="config.textfont_color" @change="updateData" placeholder="Font Color">
+            <input
+              type="number"
+              v-model.number="config.textfont_size"
+              @change="updateData"
+              placeholder="Font Size"
+            />
+            <input
+              type="text"
+              v-model="config.textfont_color"
+              @change="updateData"
+              placeholder="Font Color"
+            />
           </div>
         </div>
 
         <div class="control-section">
           <div class="section-title">General</div>
           <div class="control-row">
-            <label><input type="checkbox" v-model="config.showlegend" @change="updateData"> Show Legend</label>
-            <label><input type="checkbox" v-model="config.visible" @change="updateData"> Visible</label>
+            <label
+              ><input
+                type="checkbox"
+                v-model="config.showlegend"
+                @change="updateData"
+              />
+              Show Legend</label
+            >
+            <label
+              ><input
+                type="checkbox"
+                v-model="config.visible"
+                @change="updateData"
+              />
+              Visible</label
+            >
           </div>
           <div class="control-row">
-            <input type="number" v-model.number="config.opacity" @change="updateData" placeholder="Opacity" step="0.1">
+            <input
+              type="number"
+              v-model.number="config.opacity"
+              @change="updateData"
+              placeholder="Opacity"
+              step="0.1"
+            />
             <select v-model="config.mode" @change="updateData">
               <option value="">Auto</option>
               <option value="lines">Lines</option>
@@ -108,24 +186,54 @@
         <div class="control-section">
           <div class="section-title">Error Bars</div>
           <div class="control-row">
-            <input type="number" v-model.number="config.error_x_value" @change="updateData" placeholder="X Error Value"
-              step="0.1">
-            <input type="text" v-model="config.error_x_color" @change="updateData" placeholder="X Error Color">
+            <input
+              type="number"
+              v-model.number="config.error_x_value"
+              @change="updateData"
+              placeholder="X Error Value"
+              step="0.1"
+            />
+            <input
+              type="text"
+              v-model="config.error_x_color"
+              @change="updateData"
+              placeholder="X Error Color"
+            />
           </div>
           <div class="control-row">
-            <input type="number" v-model.number="config.error_y_value" @change="updateData" placeholder="Y Error Value"
-              step="0.1">
-            <input type="text" v-model="config.error_y_color" @change="updateData" placeholder="Y Error Color">
+            <input
+              type="number"
+              v-model.number="config.error_y_value"
+              @change="updateData"
+              placeholder="Y Error Value"
+              step="0.1"
+            />
+            <input
+              type="text"
+              v-model="config.error_y_color"
+              @change="updateData"
+              placeholder="Y Error Color"
+            />
           </div>
         </div>
 
         <div class="control-section">
           <div class="section-title">Hover & Legend</div>
           <div class="control-row">
-            <input type="text" v-model="config.hovertemplate" @change="updateData" placeholder="Hover Template">
+            <input
+              type="text"
+              v-model="config.hovertemplate"
+              @change="updateData"
+              placeholder="Hover Template"
+            />
           </div>
           <div class="control-row">
-            <input type="text" v-model="config.legendgroup" @change="updateData" placeholder="Legend Group">
+            <input
+              type="text"
+              v-model="config.legendgroup"
+              @change="updateData"
+              placeholder="Legend Group"
+            />
             <select v-model="config.hoverinfo" @change="updateData">
               <option value="">Default</option>
               <option value="x">X Only</option>
@@ -142,74 +250,104 @@
         <div class="control-section">
           <div class="section-title">Axes</div>
           <div class="control-row">
-            <input type="text" v-model="config.xaxis" @change="updateData" placeholder="X Axis (x, x2, x3...)">
-            <input type="text" v-model="config.yaxis" @change="updateData" placeholder="Y Axis (y, y2, y3...)">
+            <input
+              type="text"
+              v-model="config.xaxis"
+              @change="updateData"
+              placeholder="X Axis (x, x2, x3...)"
+            />
+            <input
+              type="text"
+              v-model="config.yaxis"
+              @change="updateData"
+              placeholder="Y Axis (y, y2, y3...)"
+            />
           </div>
         </div>
       </div>
 
-      <div v-else class="ports-info">
-        Connect inputs to configure
-      </div>
-
+      <div v-else class="ports-info">Connect inputs to configure</div>
     </div>
   </BaseNode>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, reactive, watch } from 'vue';
-import BaseNode from '../BaseNode.vue';
-import { type NodeDefinition, triggerGraphUpdate, removeConnectionsToInput } from '../nodeEditorState';
+import { ref, onMounted, reactive, watch } from "vue";
+import BaseNode from "../BaseNode.vue";
+import {
+  type NodeDefinition,
+  triggerGraphUpdate,
+  removeConnectionsToInput,
+} from "../nodeEditorState";
 
 const props = defineProps<{
   node: NodeDefinition;
   selected: boolean;
 }>();
 
-defineEmits(['connect-start', 'connect-end', 'socket-click']);
+defineEmits(["connect-start", "connect-end", "socket-click"]);
 
 const localIsManual = ref(false);
 
 // default config state for manual mode
 const config = reactive({
-  name: '',
-  mode: '',
+  name: "",
+  mode: "",
   visible: true,
   showlegend: true,
   opacity: 1,
-  line_color: '',
+  line_color: "",
   line_width: 2,
-  line_dash: '',
-  line_shape: '',
-  marker_color: '',
+  line_dash: "",
+  line_shape: "",
+  marker_color: "",
   marker_size: 6,
-  marker_symbol: 'circle',
+  marker_symbol: "circle",
   marker_opacity: 1,
-  fill: 'none',
-  fillcolor: '',
-  textposition: 'top center',
+  fill: "none",
+  fillcolor: "",
+  textposition: "top center",
   textfont_size: 12,
-  textfont_color: '',
+  textfont_color: "",
   error_x_value: 0,
-  error_x_color: '',
+  error_x_color: "",
   error_y_value: 0,
-  error_y_color: '',
-  hovertemplate: '',
-  hoverinfo: '',
-  legendgroup: '',
-  xaxis: '',
-  yaxis: ''
+  error_y_color: "",
+  hovertemplate: "",
+  hoverinfo: "",
+  legendgroup: "",
+  xaxis: "",
+  yaxis: "",
 });
 
 const ALL_PORTS = [
-  'line.color', 'line.width', 'line.dash', 'line.shape',
-  'marker.color', 'marker.size', 'marker.symbol', 'marker.opacity',
-  'fill', 'fillcolor',
-  'mode', 'name', 'visible', 'opacity', 'showlegend',
-  'textposition', 'textfont.size', 'textfont.color',
-  'error_x.value', 'error_x.color', 'error_y.value', 'error_y.color',
-  'hovertemplate', 'hoverinfo', 'legendgroup',
-  'xaxis', 'yaxis'
+  "line.color",
+  "line.width",
+  "line.dash",
+  "line.shape",
+  "marker.color",
+  "marker.size",
+  "marker.symbol",
+  "marker.opacity",
+  "fill",
+  "fillcolor",
+  "mode",
+  "name",
+  "visible",
+  "opacity",
+  "showlegend",
+  "textposition",
+  "textfont.size",
+  "textfont.color",
+  "error_x.value",
+  "error_x.color",
+  "error_y.value",
+  "error_y.color",
+  "hovertemplate",
+  "hoverinfo",
+  "legendgroup",
+  "xaxis",
+  "yaxis",
 ];
 
 onMounted(() => {
@@ -225,8 +363,8 @@ onMounted(() => {
   updateInputs();
 
   // Ensure output exists
-  if (!props.node.outputs['config']) {
-    props.node.outputs['config'] = { type: 'object' };
+  if (!props.node.outputs["config"]) {
+    props.node.outputs["config"] = { type: "object" };
   }
 });
 
@@ -253,7 +391,7 @@ function updateInputs() {
     // Add all inputs
     for (const key of ALL_PORTS) {
       if (!(key in props.node.inputs)) {
-        props.node.inputs[key] = { type: 'any' };
+        props.node.inputs[key] = { type: "any" };
       }
     }
   }
@@ -266,16 +404,22 @@ function updateData() {
   triggerGraphUpdate();
 }
 
-watch(() => props.node.data, (newData) => {
-  if (newData.isManual !== undefined && newData.isManual !== localIsManual.value) {
-    localIsManual.value = newData.isManual;
-    updateInputs();
-  }
-  if (newData.manualConfig) {
-    Object.assign(config, newData.manualConfig);
-  }
-}, { deep: true });
-
+watch(
+  () => props.node.data,
+  (newData) => {
+    if (
+      newData.isManual !== undefined &&
+      newData.isManual !== localIsManual.value
+    ) {
+      localIsManual.value = newData.isManual;
+      updateInputs();
+    }
+    if (newData.manualConfig) {
+      Object.assign(config, newData.manualConfig);
+    }
+  },
+  { deep: true }
+);
 </script>
 
 <style scoped>
@@ -302,7 +446,6 @@ watch(() => props.node.data, (newData) => {
   font-weight: bold;
 }
 
-/* Switch Styles */
 .switch {
   position: relative;
   display: inline-block;
@@ -324,7 +467,7 @@ watch(() => props.node.data, (newData) => {
   right: 0;
   bottom: 0;
   background-color: #444;
-  transition: .4s;
+  transition: 0.4s;
 }
 
 .slider:before {
@@ -335,14 +478,14 @@ watch(() => props.node.data, (newData) => {
   left: 2px;
   bottom: 2px;
   background-color: white;
-  transition: .4s;
+  transition: 0.4s;
 }
 
-input:checked+.slider {
+input:checked + .slider {
   background-color: #00d2ff;
 }
 
-input:checked+.slider:before {
+input:checked + .slider:before {
   transform: translateX(14px);
 }
 
@@ -363,7 +506,6 @@ input:checked+.slider:before {
   padding-right: 4px;
 }
 
-/* Scrollbar for manual controls */
 .manual-controls::-webkit-scrollbar {
   width: 4px;
 }

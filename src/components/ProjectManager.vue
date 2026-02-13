@@ -11,7 +11,11 @@
           </button>
 
           <div class="example-section">
-            <select @change="handleLoadExample" class="example-select" v-model="selectedExample">
+            <select
+              @change="handleLoadExample"
+              class="example-select"
+              v-model="selectedExample"
+            >
               <option value="" disabled>Load Example Projects</option>
               <option value="scatter">Scatter Plot</option>
               <option value="bar">Bar Chart</option>
@@ -25,17 +29,18 @@
           </div>
         </div>
 
-
         <button class="close-btn" @click="$emit('close')">
           <div class="i-mdi-close"></div>
         </button>
       </div>
 
-
-
-
-      <input type="file" ref="fileInput" @change="handleImportFile" accept=".json" style="display: none;" />
-
+      <input
+        type="file"
+        ref="fileInput"
+        @change="handleImportFile"
+        accept=".json"
+        style="display: none"
+      />
 
       <div class="pm-content">
         <div v-if="projects.length === 0" class="no-projects">
@@ -44,31 +49,55 @@
         </div>
 
         <div v-else class="projects-grid">
-          <div v-for="project in sortedProjects" :key="project.id" class="project-card"
-            @click="loadProject(project.id)">
+          <div
+            v-for="project in sortedProjects"
+            :key="project.id"
+            class="project-card"
+            @click="loadProject(project.id)"
+          >
             <div class="project-thumbnail">
-              <img v-if="project.thumbnail" :src="project.thumbnail" alt="Project preview" />
+              <img
+                v-if="project.thumbnail"
+                :src="project.thumbnail"
+                alt="Project preview"
+              />
               <div v-else class="thumbnail-placeholder">
                 <div class="i-mdi-chart-bar"></div>
               </div>
             </div>
 
             <div class="project-info">
-              <div class="project-name" :title="project.name">{{ project.name }}</div>
+              <div class="project-name" :title="project.name">
+                {{ project.name }}
+              </div>
               <div class="project-meta">
-                <span class="project-date">{{ formatDate(project.savedAt) }}</span>
+                <span class="project-date">{{
+                  formatDate(project.savedAt)
+                }}</span>
                 <span class="project-nodes">{{ project.nodeCount }} nodes</span>
               </div>
             </div>
 
             <div class="project-actions" @click.stop>
-              <button class="action-btn clone-btn" @click="cloneProject(project.id)" title="Clone project">
+              <button
+                class="action-btn clone-btn"
+                @click="cloneProject(project.id)"
+                title="Clone project"
+              >
                 <div class="i-mdi-content-copy"></div>
               </button>
-              <button class="action-btn rename-btn" @click="startRename(project)" title="Rename project">
+              <button
+                class="action-btn rename-btn"
+                @click="startRename(project)"
+                title="Rename project"
+              >
                 <div class="i-mdi-pencil"></div>
               </button>
-              <button class="action-btn delete-btn" @click="deleteProject(project.id)" title="Delete project">
+              <button
+                class="action-btn delete-btn"
+                @click="deleteProject(project.id)"
+                title="Delete project"
+              >
                 <div class="i-mdi-trash-can-outline"></div>
               </button>
             </div>
@@ -81,11 +110,23 @@
     <div v-if="renamingProject" class="rename-modal" @click.self="cancelRename">
       <div class="rename-content">
         <h3>Rename Project</h3>
-        <input v-model="renameValue" type="text" class="rename-input" @keyup.enter="confirmRename"
-          @keyup.escape="cancelRename" ref="renameInput" />
+        <input
+          v-model="renameValue"
+          type="text"
+          class="rename-input"
+          @keyup.enter="confirmRename"
+          @keyup.escape="cancelRename"
+          ref="renameInput"
+        />
         <div class="rename-actions">
           <button class="cancel-btn" @click="cancelRename">Cancel</button>
-          <button class="confirm-btn" @click="confirmRename" :disabled="!renameValue.trim()">Rename</button>
+          <button
+            class="confirm-btn"
+            @click="confirmRename"
+            :disabled="!renameValue.trim()"
+          >
+            Rename
+          </button>
         </div>
       </div>
     </div>
@@ -93,7 +134,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, nextTick, onMounted } from 'vue';
+import { ref, computed, nextTick, onMounted } from "vue";
 
 interface Project {
   id: string;
@@ -114,13 +155,13 @@ const props = defineProps<{
   currentThumbnail?: string;
 }>();
 
-const STORAGE_KEY = 'datatool_projects';
+const STORAGE_KEY = "datatool_projects";
 
 const projects = ref<Project[]>([]);
 const renamingProject = ref<Project | null>(null);
-const renameValue = ref('');
+const renameValue = ref("");
 const renameInput = ref<HTMLInputElement | null>(null);
-const selectedExample = ref('');
+const selectedExample = ref("");
 const fileInput = ref<HTMLInputElement | null>(null);
 
 const sortedProjects = computed(() => {
@@ -138,7 +179,7 @@ function loadProjects() {
       projects.value = JSON.parse(stored);
     }
   } catch (e) {
-    console.error('Failed to load projects:', e);
+    console.error("Failed to load projects:", e);
     projects.value = [];
   }
 }
@@ -147,8 +188,8 @@ function saveProjects() {
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(projects.value));
   } catch (e) {
-    console.error('Failed to save projects:', e);
-    alert('Failed to save projects. Storage might be full.');
+    console.error("Failed to save projects:", e);
+    alert("Failed to save projects. Storage might be full.");
   }
 }
 
@@ -163,19 +204,19 @@ function handleImportFile(event: Event) {
   const reader = new FileReader();
   reader.onload = (e) => {
     const content = e.target?.result;
-    if (typeof content === 'string') {
-      emit('load', content, ''); // Empty ID for imported files
-      emit('close');
+    if (typeof content === "string") {
+      emit("load", content, ""); // Empty ID for imported files
+      emit("close");
     }
   };
   reader.readAsText(file);
 
   // Reset input
-  if (fileInput.value) fileInput.value.value = '';
+  if (fileInput.value) fileInput.value.value = "";
 }
 
 function cloneProject(projectId: string) {
-  const project = projects.value.find(p => p.id === projectId);
+  const project = projects.value.find((p) => p.id === projectId);
   if (!project) return;
 
   const clonedProject: Project = {
@@ -184,32 +225,34 @@ function cloneProject(projectId: string) {
     savedAt: Date.now(),
     graphData: project.graphData,
     thumbnail: project.thumbnail,
-    nodeCount: project.nodeCount
+    nodeCount: project.nodeCount,
   };
 
   projects.value.push(clonedProject);
   saveProjects();
-  showNotification('Project cloned successfully!');
+  showNotification("Project cloned successfully!");
 }
 
 function loadProject(projectId: string) {
-  const project = projects.value.find(p => p.id === projectId);
+  const project = projects.value.find((p) => p.id === projectId);
   if (!project) return;
 
-  if (confirm(`Load project "${project.name}"? Current work will be replaced.`)) {
-    emit('load', project.graphData, project.id);
-    emit('close');
+  if (
+    confirm(`Load project "${project.name}"? Current work will be replaced.`)
+  ) {
+    emit("load", project.graphData, project.id);
+    emit("close");
   }
 }
 
 function deleteProject(projectId: string) {
-  const project = projects.value.find(p => p.id === projectId);
+  const project = projects.value.find((p) => p.id === projectId);
   if (!project) return;
 
   if (confirm(`Delete project "${project.name}"? This cannot be undone.`)) {
-    projects.value = projects.value.filter(p => p.id !== projectId);
+    projects.value = projects.value.filter((p) => p.id !== projectId);
     saveProjects();
-    showNotification('Project deleted');
+    showNotification("Project deleted");
   }
 }
 
@@ -228,13 +271,13 @@ function confirmRename() {
   renamingProject.value.name = renameValue.value.trim();
   saveProjects();
 
-  showNotification('Project renamed');
+  showNotification("Project renamed");
   cancelRename();
 }
 
 function cancelRename() {
   renamingProject.value = null;
-  renameValue.value = '';
+  renameValue.value = "";
 }
 
 function generateId(): string {
@@ -249,39 +292,39 @@ function formatDate(timestamp: number): string {
   const diffHours = Math.floor(diffMs / 3600000);
   const diffDays = Math.floor(diffMs / 86400000);
 
-  if (diffMins < 1) return 'Just now';
+  if (diffMins < 1) return "Just now";
   if (diffMins < 60) return `${diffMins}m ago`;
   if (diffHours < 24) return `${diffHours}h ago`;
   if (diffDays < 7) return `${diffDays}d ago`;
 
   return date.toLocaleDateString(undefined, {
-    month: 'short',
-    day: 'numeric',
-    year: date.getFullYear() !== now.getFullYear() ? 'numeric' : undefined
+    month: "short",
+    day: "numeric",
+    year: date.getFullYear() !== now.getFullYear() ? "numeric" : undefined,
   });
 }
 
 function handleLoadExample() {
   if (!selectedExample.value) return;
 
-  emit('loadExample', selectedExample.value);
-  selectedExample.value = ''; // Reset selection
-  emit('close');
+  emit("loadExample", selectedExample.value);
+  selectedExample.value = ""; // Reset selection
+  emit("close");
 }
 
 function showNotification(message: string) {
   // Simple notification - could be enhanced with a toast system
-  const notification = document.createElement('div');
-  notification.className = 'project-notification';
+  const notification = document.createElement("div");
+  notification.className = "project-notification";
   notification.textContent = message;
   document.body.appendChild(notification);
 
   setTimeout(() => {
-    notification.classList.add('show');
+    notification.classList.add("show");
   }, 10);
 
   setTimeout(() => {
-    notification.classList.remove('show');
+    notification.classList.remove("show");
     setTimeout(() => notification.remove(), 300);
   }, 2000);
 }
@@ -314,7 +357,7 @@ function showNotification(message: string) {
 }
 
 .project-manager {
-  background: #1E1E1E;
+  background: #1e1e1e;
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 16px;
   width: 90%;
@@ -443,7 +486,7 @@ function showNotification(message: string) {
 
 .example-select:focus {
   outline: none;
-  border-color: #00D2FF;
+  border-color: #00d2ff;
   box-shadow: 0 0 0 3px rgba(0, 210, 255, 0.1);
 }
 
@@ -516,7 +559,11 @@ function showNotification(message: string) {
 .project-thumbnail {
   width: 100%;
   height: 160px;
-  background: linear-gradient(135deg, rgba(0, 210, 255, 0.1) 0%, rgba(58, 123, 213, 0.1) 100%);
+  background: linear-gradient(
+    135deg,
+    rgba(0, 210, 255, 0.1) 0%,
+    rgba(58, 123, 213, 0.1) 100%
+  );
   display: flex;
   align-items: center;
   justify-content: center;
@@ -592,7 +639,7 @@ function showNotification(message: string) {
 
 .rename-btn:hover {
   background: rgba(0, 210, 255, 0.3);
-  border-color: #00D2FF;
+  border-color: #00d2ff;
 }
 
 .clone-btn:hover {
@@ -605,7 +652,6 @@ function showNotification(message: string) {
   border-color: #ff4d4d;
 }
 
-/* Rename Modal */
 .rename-modal {
   position: fixed;
   top: 0;
@@ -647,7 +693,7 @@ function showNotification(message: string) {
 
 .rename-input:focus {
   outline: none;
-  border-color: #00D2FF;
+  border-color: #00d2ff;
   box-shadow: 0 0 0 3px rgba(0, 210, 255, 0.1);
 }
 
@@ -677,7 +723,7 @@ function showNotification(message: string) {
 }
 
 .confirm-btn {
-  background: linear-gradient(135deg, #00D2FF 0%, #3A7BD5 100%);
+  background: linear-gradient(135deg, #00d2ff 0%, #3a7bd5 100%);
   border: none;
   color: #fff;
 }
@@ -691,12 +737,11 @@ function showNotification(message: string) {
   cursor: not-allowed;
 }
 
-/* Notification */
 :global(.project-notification) {
   position: fixed;
   bottom: 24px;
   right: 24px;
-  background: linear-gradient(135deg, #00D2FF 0%, #3A7BD5 100%);
+  background: linear-gradient(135deg, #00d2ff 0%, #3a7bd5 100%);
   color: #fff;
   padding: 12px 24px;
   border-radius: 8px;

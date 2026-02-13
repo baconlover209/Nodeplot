@@ -5,30 +5,45 @@
       <div class="top-bar">
         <div class="top-bar-left">
           <div class="io-group">
-            <button class="io-btn projects-btn" @click="openProjectManager" title="Manage Projects">
+            <button
+              class="io-btn projects-btn"
+              @click="openProjectManager"
+              title="Manage Projects"
+            >
               Projects
             </button>
-            <button class="io-btn save-btn-top" @click="handleQuickSave" title="Save Project">
+            <button
+              class="io-btn save-btn-top"
+              @click="handleQuickSave"
+              title="Save Project"
+            >
               Save
             </button>
-            <button class="io-btn" @click="handleExport" title="Export Graph">Export</button>
-
+            <button class="io-btn" @click="handleExport" title="Export Graph">
+              Export
+            </button>
 
             <div class="top-bar-divider"></div>
             <label class="data-checkbox" title="Include data in export">
               <input type="checkbox" v-model="includeData" />
               <span class="check-box"></span>
-              <span>Include CSV <br> in export</span>
+              <span
+                >Include CSV <br />
+                in export</span
+              >
             </label>
           </div>
         </div>
 
-        <div class="spacer" style="flex: 1;"></div>
+        <div class="spacer" style="flex: 1"></div>
 
         <div class="top-bar-right">
           <label class="live-edit-toggle vertical" title="Auto-run on changes">
-            <input type="checkbox" :checked="nodeEditorState.isLive"
-              @change="e => setIsLive((e.target as HTMLInputElement).checked)" />
+            <input
+              type="checkbox"
+              :checked="nodeEditorState.isLive"
+              @change="e => setIsLive((e.target as HTMLInputElement).checked)"
+            />
             <span class="toggle-slider"></span>
             <span class="toggle-label">Live</span>
           </label>
@@ -41,20 +56,41 @@
 
       <!-- Tabs -->
       <div class="tabs">
-
-        <button :class="{ active: activeTab === 'data' }" @click="activeTab = 'data'">Csv Data</button>
-        <button :class="{ active: activeTab === 'controls' }" @click="activeTab = 'controls'">Controls</button>
-        <button :class="{ active: activeTab === 'nodes' }" @click="activeTab = 'nodes'">Node Editor</button>
+        <button
+          :class="{ active: activeTab === 'data' }"
+          @click="activeTab = 'data'"
+        >
+          Csv Data
+        </button>
+        <button
+          :class="{ active: activeTab === 'controls' }"
+          @click="activeTab = 'controls'"
+        >
+          Controls
+        </button>
+        <button
+          :class="{ active: activeTab === 'nodes' }"
+          @click="activeTab = 'nodes'"
+        >
+          Node Editor
+        </button>
       </div>
 
       <!-- Content Section -->
       <div class="content-section">
-
         <div v-show="activeTab === 'data'" class="tab-content">
           <div class="data-toolbar">
             <div class="data-file-selector">
-              <select v-if="csvStore.files.length > 0" :value="csvStore.activeFileId" @change="handleGlobalCsvChange">
-                <option v-for="file in csvStore.files" :key="file.id" :value="file.id">
+              <select
+                v-if="csvStore.files.length > 0"
+                :value="csvStore.activeFileId"
+                @change="handleGlobalCsvChange"
+              >
+                <option
+                  v-for="file in csvStore.files"
+                  :key="file.id"
+                  :value="file.id"
+                >
                   {{ file.name }} ({{ file.width }}x{{ file.height }})
                 </option>
               </select>
@@ -63,12 +99,21 @@
 
             <div class="data-toolbar-actions">
               <label class="upload-csv-btn">
-                <input type="file" @change="handleFileUpload" accept=".csv,.txt" style="display: none;" />
+                <input
+                  type="file"
+                  @change="handleFileUpload"
+                  accept=".csv,.txt"
+                  style="display: none"
+                />
                 <span>Upload CSV</span>
               </label>
 
-              <button v-if="csvStore.activeFileId" class="delete-btn" @click="deleteActiveFile"
-                title="Delete current CSV file">
+              <button
+                v-if="csvStore.activeFileId"
+                class="delete-btn"
+                @click="deleteActiveFile"
+                title="Delete current CSV file"
+              >
                 Delete File
               </button>
             </div>
@@ -76,20 +121,36 @@
           <DataGrid :data="rawData" @update:data="handleDataUpdate" />
         </div>
         <div v-show="activeTab === 'controls'" class="tab-content">
-          <!-- Input Controls (parsed from code) -->
+          <!-- Input Controls -->
           <div class="input-controls-tab">
-            <div v-if="inputDefinitions.length === 0 && nodeInputControls.length === 0" class="no-controls">
+            <div
+              v-if="
+                inputDefinitions.length === 0 && nodeInputControls.length === 0
+              "
+              class="no-controls"
+            >
               <p>No controls defined.</p>
-              <p>Add InputNode in Node Editor or use <code>input.add()</code> in code.</p>
+              <p>
+                Add InputNode in Node Editor or use <code>input.add()</code> in
+                code.
+              </p>
             </div>
             <div v-else class="controls-container">
               <!-- Edit Mode Toggle -->
               <div class="controls-toolbar">
                 <label class="edit-mode-toggle">
                   <input type="checkbox" v-model="isEditControlMode" />
-                  <span>{{ isEditControlMode ? 'Done Editing' : 'Edit Layout' }}</span>
+                  <span>{{
+                    isEditControlMode ? "Done Editing" : "Edit Layout"
+                  }}</span>
                 </label>
-                <button v-if="isEditControlMode" class="add-tile-btn" @click="addControlTile">Add Tile</button>
+                <button
+                  v-if="isEditControlMode"
+                  class="add-tile-btn"
+                  @click="addControlTile"
+                >
+                  Add Tile
+                </button>
               </div>
 
               <div class="controls-layout-wrapper">
@@ -97,54 +158,97 @@
                 <div v-if="isEditControlMode" class="unassigned-sidebar">
                   <div class="sidebar-header">Unassigned Controls</div>
                   <div class="unassigned-list">
-                    <div v-for="item in unassignedControls" :key="item.id" class="unassigned-item" draggable="true"
-                      @dragstart="onUnassignedDragStart($event, item)">
+                    <div
+                      v-for="item in unassignedControls"
+                      :key="item.id"
+                      class="unassigned-item"
+                      draggable="true"
+                      @dragstart="onUnassignedDragStart($event, item)"
+                    >
                       {{ item.label }}
                       <span class="item-type">{{ item.source }}</span>
                     </div>
-                    <div v-if="unassignedControls.length === 0" class="empty-msg">
+                    <div
+                      v-if="unassignedControls.length === 0"
+                      class="empty-msg"
+                    >
                       All controls assigned
                     </div>
                   </div>
                 </div>
 
                 <!-- Grid Layout -->
-                <div class="control-grid" :class="{ editing: isEditControlMode }" v-if="nodeEditorState.controlLayout">
-                  <ControlTile v-for="(tile, index) in (nodeEditorState.controlLayout as any[])" :key="tile.id"
-                    :tile="tile" :isEditing="isEditControlMode" draggable="true"
-                    @dragstart="onTileDragStart($event, index)" @dragover.prevent @drop="onTileDrop($event, index)"
-                    @remove-tile="removeControlTile" @remove-item="removeControlItem" @drop-item="onItemDrop">
+                <div
+                  class="control-grid"
+                  :class="{ editing: isEditControlMode }"
+                  v-if="nodeEditorState.controlLayout"
+                >
+                  <ControlTile
+                    v-for="(tile, index) in (nodeEditorState.controlLayout as any[])"
+                    :key="tile.id"
+                    :tile="tile"
+                    :isEditing="isEditControlMode"
+                    draggable="true"
+                    @dragstart="onTileDragStart($event, index)"
+                    @dragover.prevent
+                    @drop="onTileDrop($event, index)"
+                    @remove-tile="removeControlTile"
+                    @remove-item="removeControlItem"
+                    @drop-item="onItemDrop"
+                  >
                     <template #control="{ item }">
-                      <div class="rendered-control" v-if="item && getControlData(item)">
-                        <component :is="getControlRenderer(item)" :control="getControlData(item)!"
-                          @change="handleControlChange(item, $event)" />
+                      <div
+                        class="rendered-control"
+                        v-if="item && getControlData(item)"
+                      >
+                        <component
+                          :is="getControlRenderer(item)"
+                          :control="getControlData(item)!"
+                          @change="handleControlChange(item, $event)"
+                        />
                       </div>
                     </template>
                   </ControlTile>
 
-                  <!-- Default View (if no layout exists and not editing, show legacy list) -->
                   <div
-                    v-if="(!nodeEditorState.controlLayout || nodeEditorState.controlLayout.length === 0) && !isEditControlMode"
-                    class="legacy-list-warning">
-                    <!-- If we have controls but no layout, fall back to simple list? -->
-                    <!-- Actually, user might want the auto-list if they haven't set up a layout. 
-                               But the requirement "change the layout to be a grid view" implies replacing it.
-                               Let's provide a "Auto-Generate Layout" button or just show list if empty?
-                               For now, let's keep the legacy list visible ONLY if layout is empty.
-                           -->
+                    v-if="
+                      (!nodeEditorState.controlLayout ||
+                        nodeEditorState.controlLayout.length === 0) &&
+                      !isEditControlMode
+                    "
+                    class="legacy-list-warning"
+                  >
                     <div class="auto-list">
                       <!-- Node-based controls -->
                       <div v-if="nodeInputControls.length > 0">
-                        <div class="controls-section-header">Node Editor Controls</div>
-                        <div v-for="control in nodeInputControls" :key="control.id" class="control-item">
-                          <ControlRenderer :control="control" @change="handleNodeControlChange(control.id, $event)" />
+                        <div class="controls-section-header">
+                          Node Editor Controls
+                        </div>
+                        <div
+                          v-for="control in nodeInputControls"
+                          :key="control.id"
+                          class="control-item"
+                        >
+                          <ControlRenderer
+                            :control="control"
+                            @change="
+                              handleNodeControlChange(control.id, $event)
+                            "
+                          />
                         </div>
                       </div>
                       <!-- Code-based controls -->
                       <div v-if="inputDefinitions.length > 0">
                         <div class="controls-section-header">Code Controls</div>
-                        <div v-for="input in inputDefinitions" :key="input.name" class="control-item">
-                          <ControlRenderer :control="input" @change="handleInputChange" />
+                        <div
+                          v-for="input in inputDefinitions"
+                          :key="input.name"
+                          class="control-item"
+                        >
+                          <ControlRenderer
+                            :control="input"
+                            @change="handleInputChange"
+                          />
                         </div>
                       </div>
                     </div>
@@ -165,15 +269,28 @@
 
     <!-- Main Chart Section -->
     <div class="main-panel" :class="{ 'is-resizing': !!resizingSide }">
-      <ChartPanel ref="chartPanelRef" :data="chartData" :layout="chartLayout" :isResizing="!!resizingSide"
-        @click="handleChartClick" />
+      <ChartPanel
+        ref="chartPanelRef"
+        :data="chartData"
+        :layout="chartLayout"
+        :isResizing="!!resizingSide"
+        @click="handleChartClick"
+      />
     </div>
 
     <!-- Right Resizer -->
-    <div v-if="nodeEditorState.showDocPanel" class="resizer" @mousedown="startResize('right')"></div>
+    <div
+      v-if="nodeEditorState.showDocPanel"
+      class="resizer"
+      @mousedown="startResize('right')"
+    ></div>
 
     <!-- Documentation Section -->
-    <div v-if="nodeEditorState.showDocPanel" class="sidebar right-panel" :style="{ width: rightWidth + 'px' }">
+    <div
+      v-if="nodeEditorState.showDocPanel"
+      class="sidebar right-panel"
+      :style="{ width: rightWidth + 'px' }"
+    >
       <DocPanel />
     </div>
 
@@ -181,18 +298,40 @@
     <div v-if="resizingSide" class="resizing-overlay"></div>
 
     <!-- Project Manager Modal -->
-    <ProjectManager v-if="showProjectManager" :currentThumbnail="plotThumbnail" @close="showProjectManager = false"
-      @load="handleProjectLoad" @loadExample="handleLoadExample" />
+    <ProjectManager
+      v-if="showProjectManager"
+      :currentThumbnail="plotThumbnail"
+      @close="showProjectManager = false"
+      @load="handleProjectLoad"
+      @loadExample="handleLoadExample"
+    />
 
     <!-- Save Project Name Modal -->
-    <div v-if="showSaveNameModal" class="save-name-modal-overlay" @click.self="cancelSaveName">
+    <div
+      v-if="showSaveNameModal"
+      class="save-name-modal-overlay"
+      @click.self="cancelSaveName"
+    >
       <div class="save-name-modal">
         <h3>Save Project</h3>
-        <input v-model="saveProjectName" type="text" class="save-name-input" placeholder="Enter project name..."
-          @keyup.enter="confirmSaveName" @keyup.escape="cancelSaveName" ref="saveNameInput" />
+        <input
+          v-model="saveProjectName"
+          type="text"
+          class="save-name-input"
+          placeholder="Enter project name..."
+          @keyup.enter="confirmSaveName"
+          @keyup.escape="cancelSaveName"
+          ref="saveNameInput"
+        />
         <div class="save-name-actions">
           <button class="cancel-btn" @click="cancelSaveName">Cancel</button>
-          <button class="confirm-btn" @click="confirmSaveName" :disabled="!saveProjectName.trim()">Save</button>
+          <button
+            class="confirm-btn"
+            @click="confirmSaveName"
+            :disabled="!saveProjectName.trim()"
+          >
+            Save
+          </button>
         </div>
       </div>
     </div>
@@ -200,38 +339,46 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted, computed, watch, provide, nextTick } from 'vue';
-import Papa from 'papaparse';
-import ChartPanel from './components/ChartPanel.vue';
-import DocPanel from './components/DocPanel.vue';
-import DataGrid from './components/DataGrid.vue';
-import { csvStore } from './stores/csvStore';
-import ControlTile from './components/ControlTile.vue';
-import ControlRenderer from './components/ControlRenderer.vue'; // New helper component logic
-import ProjectManager from './components/ProjectManager.vue';
+import {
+  ref,
+  onMounted,
+  onUnmounted,
+  computed,
+  watch,
+  provide,
+  nextTick,
+} from "vue";
+import Papa from "papaparse";
+import ChartPanel from "./components/ChartPanel.vue";
+import DocPanel from "./components/DocPanel.vue";
+import DataGrid from "./components/DataGrid.vue";
+import { csvStore } from "./stores/csvStore";
+import ControlTile from "./components/ControlTile.vue";
+import ControlRenderer from "./components/ControlRenderer.vue";
+import ProjectManager from "./components/ProjectManager.vue";
 
 // Node Editor Imports
-import NodeCanvas from './components/NodeEditor/NodeCanvas.vue';
-import MathNode from './components/NodeEditor/nodes/MathNode.vue';
-import DisplayNode from './components/NodeEditor/nodes/DisplayNode.vue';
-import NumberNode from './components/NodeEditor/nodes/NumberNode.vue';
-import InputNode from './components/NodeEditor/nodes/InputNode.vue';
-import ChartEventNode from './components/NodeEditor/nodes/ChartEventNode.vue';
-import ConstantNode from './components/NodeEditor/nodes/ConstantNode.vue';
-import ColorNode from './components/NodeEditor/nodes/ColorNode.vue';
-import CSVInputNode from './components/NodeEditor/nodes/CSVInputNode.vue';
-import IsolateColumnNode from './components/NodeEditor/nodes/IsolateColumnNode.vue';
-import SwitchNode from './components/NodeEditor/nodes/SwitchNode.vue';
-import TraceNode from './components/NodeEditor/nodes/TraceNode.vue';
-import JoinerNode from './components/NodeEditor/nodes/JoinerNode.vue';
-import CompareNode from './components/NodeEditor/nodes/CompareNode.vue';
-import LogicNode from './components/NodeEditor/nodes/LogicNode.vue';
-import IfNode from './components/NodeEditor/nodes/IfNode.vue';
-import FilterNode from './components/NodeEditor/nodes/FilterNode.vue';
-import PlotlyNode from './components/NodeEditor/nodes/PlotlyNode.vue';
-import StylingNode from './components/NodeEditor/nodes/StylingNode.vue';
-import RangeNode from './components/NodeEditor/nodes/RangeNode.vue';
-import LinkNode from './components/NodeEditor/nodes/LinkNode.vue';
+import NodeCanvas from "./components/NodeEditor/NodeCanvas.vue";
+import MathNode from "./components/NodeEditor/nodes/MathNode.vue";
+import DisplayNode from "./components/NodeEditor/nodes/DisplayNode.vue";
+import NumberNode from "./components/NodeEditor/nodes/NumberNode.vue";
+import InputNode from "./components/NodeEditor/nodes/InputNode.vue";
+import ChartEventNode from "./components/NodeEditor/nodes/ChartEventNode.vue";
+import ConstantNode from "./components/NodeEditor/nodes/ConstantNode.vue";
+import ColorNode from "./components/NodeEditor/nodes/ColorNode.vue";
+import CSVInputNode from "./components/NodeEditor/nodes/CSVInputNode.vue";
+import IsolateColumnNode from "./components/NodeEditor/nodes/IsolateColumnNode.vue";
+import SwitchNode from "./components/NodeEditor/nodes/SwitchNode.vue";
+import TraceNode from "./components/NodeEditor/nodes/TraceNode.vue";
+import JoinerNode from "./components/NodeEditor/nodes/JoinerNode.vue";
+import CompareNode from "./components/NodeEditor/nodes/CompareNode.vue";
+import LogicNode from "./components/NodeEditor/nodes/LogicNode.vue";
+import IfNode from "./components/NodeEditor/nodes/IfNode.vue";
+import FilterNode from "./components/NodeEditor/nodes/FilterNode.vue";
+import PlotlyNode from "./components/NodeEditor/nodes/PlotlyNode.vue";
+import StylingNode from "./components/NodeEditor/nodes/StylingNode.vue";
+import RangeNode from "./components/NodeEditor/nodes/RangeNode.vue";
+import LinkNode from "./components/NodeEditor/nodes/LinkNode.vue";
 import {
   registerNodeType,
   addNode,
@@ -244,30 +391,30 @@ import {
   loadGraph,
   generateId,
   setIsLive,
-  forceEvaluation
-} from './components/NodeEditor/nodeEditorState';
+  forceEvaluation,
+} from "./components/NodeEditor/nodeEditorState";
 
 // Register Node Types
-registerNodeType('math', MathNode);
-registerNodeType('display', DisplayNode);
-registerNodeType('number', NumberNode);
-registerNodeType('input', InputNode);
-registerNodeType('chartEvent', ChartEventNode);
-registerNodeType('constant', ConstantNode);
-registerNodeType('color', ColorNode);
-registerNodeType('csvInput', CSVInputNode);
-registerNodeType('isolateColumn', IsolateColumnNode);
-registerNodeType('switch', SwitchNode);
-registerNodeType('trace', TraceNode);
-registerNodeType('joiner', JoinerNode);
-registerNodeType('compare', CompareNode);
-registerNodeType('logic', LogicNode);
-registerNodeType('if', IfNode);
-registerNodeType('filter', FilterNode);
-registerNodeType('plotly', PlotlyNode);
-registerNodeType('styling', StylingNode);
-registerNodeType('range', RangeNode);
-registerNodeType('link', LinkNode);
+registerNodeType("math", MathNode);
+registerNodeType("display", DisplayNode);
+registerNodeType("number", NumberNode);
+registerNodeType("input", InputNode);
+registerNodeType("chartEvent", ChartEventNode);
+registerNodeType("constant", ConstantNode);
+registerNodeType("color", ColorNode);
+registerNodeType("csvInput", CSVInputNode);
+registerNodeType("isolateColumn", IsolateColumnNode);
+registerNodeType("switch", SwitchNode);
+registerNodeType("trace", TraceNode);
+registerNodeType("joiner", JoinerNode);
+registerNodeType("compare", CompareNode);
+registerNodeType("logic", LogicNode);
+registerNodeType("if", IfNode);
+registerNodeType("filter", FilterNode);
+registerNodeType("plotly", PlotlyNode);
+registerNodeType("styling", StylingNode);
+registerNodeType("range", RangeNode);
+registerNodeType("link", LinkNode);
 
 // Widths
 const leftWidth = ref(800);
@@ -306,19 +453,19 @@ const chartLayout = ref<any>({});
 // rawData is now computed from the active store file
 const rawData = computed({
   get: () => {
-    const file = csvStore.files.find(f => f.id === csvStore.activeFileId);
+    const file = csvStore.files.find((f) => f.id === csvStore.activeFileId);
     return file ? file.data : [];
   },
   set: (val) => {
     if (csvStore.activeFileId) {
       csvStore.updateFileContent(csvStore.activeFileId, val);
     }
-  }
+  },
 });
-const activeTab = ref<'data' | 'controls' | 'nodes'>('nodes');
+const activeTab = ref<"data" | "controls" | "nodes">("nodes");
 // const isLiveEdit = ref(true); // Moved to global state
 const inputDefinitions = ref<any[]>([]);
-const resizingSide = ref<'left' | 'right' | null>(null);
+const resizingSide = ref<"left" | "right" | null>(null);
 const lastChartClick = ref<any>(null);
 
 const isEditControlMode = ref(false);
@@ -326,44 +473,60 @@ const showProjectManager = ref(false);
 const plotThumbnail = ref<string | undefined>(undefined);
 const chartPanelRef = ref<any>(null);
 const showSaveNameModal = ref(false);
-const saveProjectName = ref('');
+const saveProjectName = ref("");
 const saveNameInput = ref<HTMLInputElement | null>(null);
 const currentProjectId = ref<string | null>(null); // Track if we're updating an existing project
 
 const currentProjectName = computed(() => {
-  if (!currentProjectId.value) return 'New Project';
+  if (!currentProjectId.value) return "New Project";
   try {
-    const projects = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+    const projects = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
     const project = projects.find((p: any) => p.id === currentProjectId.value);
-    return project ? project.name : 'New Project';
+    return project ? project.name : "New Project";
   } catch (e) {
-    return 'New Project';
+    return "New Project";
   }
 });
 
-watch(currentProjectName, (newName) => {
-  document.title = `Nodeplot - ${newName}`;
-}, { immediate: true });
+watch(
+  currentProjectName,
+  (newName) => {
+    document.title = `Nodeplot - ${newName}`;
+  },
+  { immediate: true }
+);
 
 const unassignedControls = computed(() => {
   const assignedIds = new Set();
-  nodeEditorState.controlLayout?.forEach(tile => {
-    tile.items.forEach(item => assignedIds.add(item.id + ':' + item.type));
+  nodeEditorState.controlLayout?.forEach((tile) => {
+    tile.items.forEach((item) => assignedIds.add(item.id + ":" + item.type));
   });
 
   const list: any[] = [];
 
   // Node controls
-  nodeInputControls.value.forEach(c => {
-    if (!assignedIds.has(c.id + ':node')) {
-      list.push({ ...c, id: c.id, type: 'node', label: c.label, source: 'Node' });
+  nodeInputControls.value.forEach((c) => {
+    if (!assignedIds.has(c.id + ":node")) {
+      list.push({
+        ...c,
+        id: c.id,
+        type: "node",
+        label: c.label,
+        source: "Node",
+      });
     }
   });
 
   // Code controls
-  inputDefinitions.value.forEach(c => {
-    if (!assignedIds.has(c.name + ':code')) {
-      list.push({ ...c, id: c.name, type: 'code', label: c.label, source: 'Code' });
+  inputDefinitions.value.forEach((c) => {
+    if (!assignedIds.has(c.name + ":code")) {
+      list.push({
+        ...c,
+        id: c.name,
+        type: "code",
+        label: c.label,
+        source: "Code",
+      });
     }
   });
 
@@ -374,23 +537,25 @@ function addControlTile() {
   if (!nodeEditorState.controlLayout) nodeEditorState.controlLayout = [];
   nodeEditorState.controlLayout.push({
     id: generateId(),
-    label: 'New Group',
+    label: "New Group",
     position: { x: 0, y: 0 },
-    layout: 'vertical',
-    items: []
+    layout: "vertical",
+    items: [],
   });
 }
 
 function removeControlTile(id: string) {
-  if (confirm('Remove this group?')) {
-    nodeEditorState.controlLayout = nodeEditorState.controlLayout.filter(t => t.id !== id);
+  if (confirm("Remove this group?")) {
+    nodeEditorState.controlLayout = nodeEditorState.controlLayout.filter(
+      (t) => t.id !== id
+    );
   }
 }
 
 function removeControlItem(tileId: string, itemId: string) {
-  const tile = nodeEditorState.controlLayout.find(t => t.id === tileId);
+  const tile = nodeEditorState.controlLayout.find((t) => t.id === tileId);
   if (tile) {
-    tile.items = tile.items.filter(i => i.id !== itemId);
+    tile.items = tile.items.filter((i) => i.id !== itemId);
   }
 }
 
@@ -399,15 +564,18 @@ function onTileDragStart(event: DragEvent, index: number) {
     event.preventDefault();
     return;
   }
-  event.dataTransfer?.setData('application/json', JSON.stringify({ type: 'move-tile', index }));
+  event.dataTransfer?.setData(
+    "application/json",
+    JSON.stringify({ type: "move-tile", index })
+  );
 }
 
 function onTileDrop(event: DragEvent, targetIndex: number) {
-  const dataStr = event.dataTransfer?.getData('application/json');
+  const dataStr = event.dataTransfer?.getData("application/json");
   if (!dataStr) return;
   const data = JSON.parse(dataStr);
 
-  if (data.type === 'move-tile') {
+  if (data.type === "move-tile") {
     const fromIndex = data.index;
     if (!nodeEditorState.controlLayout) return;
     const tile = nodeEditorState.controlLayout[fromIndex];
@@ -419,28 +587,33 @@ function onTileDrop(event: DragEvent, targetIndex: number) {
 }
 
 function onUnassignedDragStart(event: DragEvent, item: any) {
-  event.dataTransfer?.setData('application/json', JSON.stringify({
-    type: 'add-item',
-    id: item.id,
-    itemType: item.type
-  }));
+  event.dataTransfer?.setData(
+    "application/json",
+    JSON.stringify({
+      type: "add-item",
+      id: item.id,
+      itemType: item.type,
+    })
+  );
 }
 
 function onItemDrop(event: DragEvent, tileId: string) {
-  const dataStr = event.dataTransfer?.getData('application/json');
+  const dataStr = event.dataTransfer?.getData("application/json");
   if (!dataStr) return;
   const data = JSON.parse(dataStr);
 
   if (!nodeEditorState.controlLayout) return;
-  const tile = nodeEditorState.controlLayout.find(t => t.id === tileId);
+  const tile = nodeEditorState.controlLayout.find((t) => t.id === tileId);
   if (!tile) return;
 
-  if (data.type === 'add-item') {
+  if (data.type === "add-item") {
     // Add new item
     tile.items.push({ id: data.id, type: data.itemType });
-  } else if (data.type === 'move-item') {
+  } else if (data.type === "move-item") {
     // Move existing item
-    const sourceTile = nodeEditorState.controlLayout.find(t => t.id === data.tileId);
+    const sourceTile = nodeEditorState.controlLayout.find(
+      (t) => t.id === data.tileId
+    );
     if (sourceTile && sourceTile.items) {
       const item = sourceTile.items[data.index];
       if (item) {
@@ -451,32 +624,24 @@ function onItemDrop(event: DragEvent, tileId: string) {
   }
 }
 
-// Helpers for ControlRenderer logic (inline here or separate component)
-// Since I used dynamic component :is="getControlRenderer", I need to supply it. 
-// Actually, it's easier to use a single component that handles all types.
-
-
 function getControlRenderer(_item: any) {
   return ControlRenderer;
 }
 
 function getControlData(item: any) {
-  if (item.type === 'node') {
-    return nodeInputControls.value.find(c => c.id === item.id);
+  if (item.type === "node") {
+    return nodeInputControls.value.find((c) => c.id === item.id);
   } else {
-    return inputDefinitions.value.find(c => c.name === item.id);
+    return inputDefinitions.value.find((c) => c.name === item.id);
   }
 }
 
 function handleControlChange(item: any, event: any) {
-  if (item.type === 'node') {
+  if (item.type === "node") {
     handleNodeControlChange(item.id, event);
   } else {
-    // Code controls handle their own v-model usually, but ControlRenderer will emit change
-    // We need to update the value manually if it's not bound via v-model in Renderer
-    const def = inputDefinitions.value.find(c => c.name === item.id);
+    const def = inputDefinitions.value.find((c) => c.name === item.id);
     if (def) {
-      // Event is value from Renderer
       def.value = event;
       handleInputChange();
     }
@@ -487,9 +652,9 @@ const includeData = ref(true);
 
 function handleExport() {
   const json = serializeGraph(includeData.value);
-  const blob = new Blob([json], { type: 'application/json' });
+  const blob = new Blob([json], { type: "application/json" });
   const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
+  const a = document.createElement("a");
   a.href = url;
   a.download = `graph-${new Date().toISOString().slice(0, 10)}.json`;
   a.click();
@@ -508,13 +673,12 @@ async function openProjectManager() {
       const thumbnail = await chartPanelRef.value.getThumbnail();
       plotThumbnail.value = thumbnail || undefined;
     } catch (e) {
-      console.error('Failed to capture thumbnail:', e);
+      console.error("Failed to capture thumbnail:", e);
       plotThumbnail.value = undefined;
     }
   }
   showProjectManager.value = true;
 }
-
 
 async function handleLoadExample(exampleName: string) {
   try {
@@ -526,7 +690,7 @@ async function handleLoadExample(exampleName: string) {
   }
 }
 
-const STORAGE_KEY = 'datatool_projects';
+const STORAGE_KEY = "datatool_projects";
 
 interface Project {
   id: string;
@@ -546,13 +710,14 @@ async function handleQuickSave() {
       projects = JSON.parse(stored);
     }
   } catch (e) {
-    console.error('Failed to load projects:', e);
+    console.error("Failed to load projects:", e);
   }
 
   // Check if current project exists (by comparing graph structure)
   let existingProject: Project | null = null;
   if (currentProjectId.value) {
-    existingProject = projects.find(p => p.id === currentProjectId.value) || null;
+    existingProject =
+      projects.find((p) => p.id === currentProjectId.value) || null;
   }
 
   if (existingProject) {
@@ -560,7 +725,7 @@ async function handleQuickSave() {
     await saveProject(existingProject.id, existingProject.name);
   } else {
     // Show modal to enter name
-    saveProjectName.value = '';
+    saveProjectName.value = "";
     showSaveNameModal.value = true;
     nextTick(() => {
       saveNameInput.value?.focus();
@@ -577,7 +742,7 @@ async function saveProject(projectId: string | null, projectName: string) {
     try {
       thumbnail = await chartPanelRef.value.getThumbnail();
     } catch (e) {
-      console.error('Failed to capture thumbnail:', e);
+      console.error("Failed to capture thumbnail:", e);
     }
   }
 
@@ -587,7 +752,7 @@ async function saveProject(projectId: string | null, projectName: string) {
     const parsed = JSON.parse(graphData);
     nodeCount = parsed.nodes?.length || 0;
   } catch (e) {
-    console.error('Failed to parse graph data:', e);
+    console.error("Failed to parse graph data:", e);
   }
 
   // Load projects
@@ -598,12 +763,12 @@ async function saveProject(projectId: string | null, projectName: string) {
       projects = JSON.parse(stored);
     }
   } catch (e) {
-    console.error('Failed to load projects:', e);
+    console.error("Failed to load projects:", e);
   }
 
   if (projectId) {
     // Update existing project
-    const index = projects.findIndex(p => p.id === projectId);
+    const index = projects.findIndex((p) => p.id === projectId);
     if (index !== -1) {
       const oldProject = projects[index];
       if (oldProject) {
@@ -613,7 +778,7 @@ async function saveProject(projectId: string | null, projectName: string) {
           savedAt: Date.now(),
           graphData,
           thumbnail,
-          nodeCount
+          nodeCount,
         };
         projects[index] = updatedProject;
         currentProjectId.value = projectId;
@@ -621,14 +786,16 @@ async function saveProject(projectId: string | null, projectName: string) {
     }
   } else {
     // Create new project
-    const newId = `project_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    const newId = `project_${Date.now()}_${Math.random()
+      .toString(36)
+      .substr(2, 9)}`;
     projects.push({
       id: newId,
       name: projectName,
       savedAt: Date.now(),
       graphData,
       thumbnail,
-      nodeCount
+      nodeCount,
     });
     currentProjectId.value = newId;
   }
@@ -636,10 +803,10 @@ async function saveProject(projectId: string | null, projectName: string) {
   // Save to localStorage
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(projects));
-    showNotification(projectId ? 'Project updated!' : 'Project saved!');
+    showNotification(projectId ? "Project updated!" : "Project saved!");
   } catch (e) {
-    console.error('Failed to save projects:', e);
-    alert('Failed to save project. Storage might be full.');
+    console.error("Failed to save projects:", e);
+    alert("Failed to save project. Storage might be full.");
   }
 }
 
@@ -648,38 +815,38 @@ async function confirmSaveName() {
 
   await saveProject(null, saveProjectName.value.trim());
   showSaveNameModal.value = false;
-  saveProjectName.value = '';
+  saveProjectName.value = "";
 }
 
 function cancelSaveName() {
   showSaveNameModal.value = false;
-  saveProjectName.value = '';
+  saveProjectName.value = "";
 }
 
 function showNotification(message: string) {
   // Simple notification - could be enhanced with a toast system
-  const notification = document.createElement('div');
-  notification.className = 'project-notification';
+  const notification = document.createElement("div");
+  notification.className = "project-notification";
   notification.textContent = message;
   document.body.appendChild(notification);
 
   setTimeout(() => {
-    notification.classList.add('show');
+    notification.classList.add("show");
   }, 10);
 
   setTimeout(() => {
-    notification.classList.remove('show');
+    notification.classList.remove("show");
     setTimeout(() => notification.remove(), 300);
   }, 2000);
 }
 
 // Provide to child components (for InputNode and ChartEventNode)
-provide('inputDefinitions', inputDefinitions);
-provide('lastChartClick', lastChartClick);
+provide("inputDefinitions", inputDefinitions);
+provide("lastChartClick", lastChartClick);
 
 const inputValues = computed(() => {
   const vals: any = {};
-  inputDefinitions.value.forEach(d => {
+  inputDefinitions.value.forEach((d) => {
     vals[d.name] = d.value;
   });
   return vals;
@@ -688,17 +855,17 @@ const inputValues = computed(() => {
 // Computed property to get InputNode controls from node editor
 const nodeInputControls = computed(() => {
   const controls: any[] = [];
-  nodeEditorState.nodes.forEach(node => {
-    if (node.type === 'input' && node.data.inputType) {
+  nodeEditorState.nodes.forEach((node) => {
+    if (node.type === "input" && node.data.inputType) {
       controls.push({
         id: node.id,
-        label: node.data.label || 'Unnamed',
+        label: node.data.label || "Unnamed",
         type: node.data.inputType,
         value: node.data.currentValue ?? node.data.defaultValue,
         min: node.data.min,
         max: node.data.max,
         step: node.data.step,
-        options: node.data.options
+        options: node.data.options,
       });
     }
   });
@@ -717,7 +884,10 @@ const handleFileUpload = (event: any) => {
   reader.readAsText(file);
 };
 
-const processCsvText = (text: string, name: string): Promise<{ id: string, data: any[], arrayData: any[][] }> => {
+const processCsvText = (
+  text: string,
+  name: string
+): Promise<{ id: string; data: any[]; arrayData: any[][] }> => {
   return new Promise((resolve) => {
     // 1. Parse as Objects (for Code/DataGrid)
     Papa.parse(text, {
@@ -738,15 +908,15 @@ const processCsvText = (text: string, name: string): Promise<{ id: string, data:
               name: name,
               data: data,
               arrayData: arrayData,
-              width: (data.length > 0) ? Object.keys(data[0] || {}).length : 0,
-              height: data.length
+              width: data.length > 0 ? Object.keys(data[0] || {}).length : 0,
+              height: data.length,
             });
             csvStore.setActiveFile(id);
             runCode(true);
             resolve({ id, data, arrayData });
-          }
+          },
         });
-      }
+      },
     });
   });
 };
@@ -760,7 +930,7 @@ const handleGlobalCsvChange = (event: Event) => {
 const deleteActiveFile = () => {
   if (csvStore.activeFileId) {
     // Confirm?
-    if (confirm('Are you sure you want to delete this file?')) {
+    if (confirm("Are you sure you want to delete this file?")) {
       csvStore.removeFile(csvStore.activeFileId);
     }
   }
@@ -781,7 +951,7 @@ const handleInputChange = () => {
 };
 
 const handleNodeControlChange = (nodeId: string, value: any) => {
-  const node = nodeEditorState.nodes.find(n => n.id === nodeId);
+  const node = nodeEditorState.nodes.find((n) => n.id === nodeId);
   if (!node) return;
 
   // Update node data using the value emitted by ControlRenderer
@@ -799,20 +969,22 @@ const parseInputs = (codeStr: string) => {
       definitions.push({
         name,
         label: config.label || name,
-        type: config.type || 'text',
-        value: config.default ?? (config.type === 'number' || config.type === 'slider' ? 0 : ''),
-        ...config
+        type: config.type || "text",
+        value:
+          config.default ??
+          (config.type === "number" || config.type === "slider" ? 0 : ""),
+        ...config,
       });
-    }
+    },
   };
 
   try {
-    const fn = new Function('input', codeStr);
+    const fn = new Function("input", codeStr);
     fn(inputProxy);
 
     // Merge existing values
-    definitions.forEach(newDef => {
-      const oldDef = inputDefinitions.value.find(d => d.name === newDef.name);
+    definitions.forEach((newDef) => {
+      const oldDef = inputDefinitions.value.find((d) => d.name === newDef.name);
       if (oldDef && oldDef.type === newDef.type) {
         newDef.value = oldDef.value;
       }
@@ -854,7 +1026,7 @@ const runCode = (force = false) => {
 const executeCode = () => {
   try {
     if (!code.value) return;
-    const fn = new Function('data', 'inputs', 'Plotly', code.value);
+    const fn = new Function("data", "inputs", "Plotly", code.value);
     const result = fn(rawData.value, inputValues.value, {});
 
     if (result) {
@@ -862,17 +1034,17 @@ const executeCode = () => {
       chartLayout.value = result.layout || {};
     }
   } catch (err) {
-    console.error('Code Error:', err);
+    console.error("Code Error:", err);
   }
 };
 
 // Resizing
-const startResize = (side: 'left' | 'right') => {
+const startResize = (side: "left" | "right") => {
   resizingSide.value = side;
-  window.addEventListener('mousemove', onResize);
-  window.addEventListener('mouseup', stopResize);
-  document.body.style.cursor = 'col-resize';
-  document.body.style.userSelect = 'none';
+  window.addEventListener("mousemove", onResize);
+  window.addEventListener("mouseup", stopResize);
+  document.body.style.cursor = "col-resize";
+  document.body.style.userSelect = "none";
 };
 
 let resizeAnimationFrame: number | null = null;
@@ -881,19 +1053,34 @@ const onResize = (e: MouseEvent) => {
   if (resizeAnimationFrame) return;
 
   resizeAnimationFrame = requestAnimationFrame(() => {
-    if (resizingSide.value === 'left') {
-      const maxWidth = window.innerWidth - rightWidth.value - MIN_MAIN_PANEL_WIDTH - (RESIZER_WIDTH * 2);
-      leftWidth.value = Math.max(MIN_SIDEBAR_WIDTH, Math.min(e.clientX, maxWidth));
-    } else if (resizingSide.value === 'right') {
-      const maxWidth = window.innerWidth - leftWidth.value - MIN_MAIN_PANEL_WIDTH - (RESIZER_WIDTH * 2);
-      rightWidth.value = Math.max(MIN_SIDEBAR_WIDTH, Math.min(window.innerWidth - e.clientX, maxWidth));
+    if (resizingSide.value === "left") {
+      const maxWidth =
+        window.innerWidth -
+        rightWidth.value -
+        MIN_MAIN_PANEL_WIDTH -
+        RESIZER_WIDTH * 2;
+      leftWidth.value = Math.max(
+        MIN_SIDEBAR_WIDTH,
+        Math.min(e.clientX, maxWidth)
+      );
+    } else if (resizingSide.value === "right") {
+      const maxWidth =
+        window.innerWidth -
+        leftWidth.value -
+        MIN_MAIN_PANEL_WIDTH -
+        RESIZER_WIDTH * 2;
+      rightWidth.value = Math.max(
+        MIN_SIDEBAR_WIDTH,
+        Math.min(window.innerWidth - e.clientX, maxWidth)
+      );
     }
     resizeAnimationFrame = null;
   });
 };
 
 const handleWindowResize = () => {
-  const availableWidthForSidebars = window.innerWidth - MIN_MAIN_PANEL_WIDTH - (RESIZER_WIDTH * 2);
+  const availableWidthForSidebars =
+    window.innerWidth - MIN_MAIN_PANEL_WIDTH - RESIZER_WIDTH * 2;
   const currentTotal = leftWidth.value + rightWidth.value;
 
   if (currentTotal > availableWidthForSidebars) {
@@ -910,59 +1097,59 @@ const handleWindowResize = () => {
 
 const stopResize = () => {
   resizingSide.value = null;
-  window.removeEventListener('mousemove', onResize);
-  window.removeEventListener('mouseup', stopResize);
-  document.body.style.cursor = '';
-  document.body.style.userSelect = '';
+  window.removeEventListener("mousemove", onResize);
+  window.removeEventListener("mouseup", stopResize);
+  document.body.style.cursor = "";
+  document.body.style.userSelect = "";
 };
 
 // Sync Node Editor to Main Chart
-import { getNodeValues } from './components/NodeEditor/nodeEditorState';
+import { getNodeValues } from "./components/NodeEditor/nodeEditorState";
 
 // Watch for node graph updates to drive the main chart
-import { watchEffect } from 'vue';
+import { watchEffect } from "vue";
 
 watchEffect(() => {
   // Find a Plotly node
-  const plotlyNode = nodeEditorState.nodes.find(n => n.type === 'plotly');
+  const plotlyNode = nodeEditorState.nodes.find((n) => n.type === "plotly");
 
   if (plotlyNode) {
     // Get its data from values
     const values = getNodeValues.value[plotlyNode.id];
     if (values) {
       // Data
-      const inputData = values['data'];
+      const inputData = values["data"];
       if (Array.isArray(inputData)) {
-        chartData.value = inputData.flat().filter(d => d);
-      } else if (typeof inputData === 'object' && inputData !== null) {
+        chartData.value = inputData.flat().filter((d) => d);
+      } else if (typeof inputData === "object" && inputData !== null) {
         chartData.value = [inputData];
       } else {
         chartData.value = [];
       }
 
       // Layout
-      if (values['layout']) {
-        chartLayout.value = values['layout'];
+      if (values["layout"]) {
+        chartLayout.value = values["layout"];
       } else {
         chartLayout.value = {
           margin: { t: 30, r: 20, b: 40, l: 40 },
-          paper_bgcolor: 'transparent',
-          plot_bgcolor: 'transparent',
-          font: { color: '#ccc' },
-          xaxis: { gridcolor: '#444', zerolinecolor: '#666' },
-          yaxis: { gridcolor: '#444', zerolinecolor: '#666' },
+          paper_bgcolor: "transparent",
+          plot_bgcolor: "transparent",
+          font: { color: "#ccc" },
+          xaxis: { gridcolor: "#444", zerolinecolor: "#666" },
+          yaxis: { gridcolor: "#444", zerolinecolor: "#666" },
           showlegend: true,
           legend: { x: 0, y: 1 },
-          hovermode: 'closest'
+          hovermode: "closest",
         };
       }
     }
   } else {
-    // Fallback to code execution if no plotly node? 
-    // Or specific 'mode' switch? 
+    // Fallback to code execution if no plotly node?
+    // Or specific 'mode' switch?
     // For now, if code is empty and we have no node, it's empty.
     // If code has content, runCode updates chartData.
-    // We might have a conflict if both exist. 
+    // We might have a conflict if both exist.
     // Let's say Node Editor takes precedence if a Plotly node exists.
   }
 });
@@ -970,12 +1157,12 @@ watchEffect(() => {
 watch(code, () => {
   parseInputs(code.value);
   // Only run code if NO plotly node exists
-  const plotlyNode = nodeEditorState.nodes.find(n => n.type === 'plotly');
+  const plotlyNode = nodeEditorState.nodes.find((n) => n.type === "plotly");
   if (!plotlyNode && nodeEditorState.isLive) runCode();
 });
 
 watch(activeTab, (newTab) => {
-  if (newTab === 'nodes') {
+  if (newTab === "nodes") {
     // Give time for the DOM to render the node editor container
     setTimeout(() => {
       triggerLayoutUpdate();
@@ -991,11 +1178,11 @@ const handleChartClick = (event: any) => {
       x: point.x,
       y: point.y,
       pointIndex: point.pointIndex,
-      curveNumber: point.curveNumber
+      curveNumber: point.curveNumber,
     };
 
     // 2. Update Plotly Node state for node-based usage
-    const plotlyNode = nodeEditorState.nodes.find(n => n.type === 'plotly');
+    const plotlyNode = nodeEditorState.nodes.find((n) => n.type === "plotly");
     if (plotlyNode) {
       if (!plotlyNode.data) plotlyNode.data = {};
       plotlyNode.data.selectedPoint = {
@@ -1003,7 +1190,7 @@ const handleChartClick = (event: any) => {
         y: point.y,
         curveNumber: point.curveNumber,
         pointIndex: point.pointIndex,
-        data: point.data
+        data: point.data,
       };
       // Trigger update to propagate to Display nodes
       triggerGraphUpdate(true);
@@ -1012,140 +1199,185 @@ const handleChartClick = (event: any) => {
 };
 
 onMounted(() => {
-  window.addEventListener('resize', handleWindowResize);
+  window.addEventListener("resize", handleWindowResize);
 
   // Clear existing nodes to avoid duplication on HMR/remount
   clearGraph();
 
   // Load example CSV and setup default graph
-  fetch('/example.csv')
-    .then(r => r.text())
-    .then(async t => {
+  fetch("/example.csv")
+    .then((r) => r.text())
+    .then(async (t) => {
       // 1. Process for both Code and Node modes
-      const { id, arrayData } = await processCsvText(t, 'example.csv');
+      const { id, arrayData } = await processCsvText(t, "example.csv");
 
       // 2. Setup Node Graph using this data
       const data = arrayData;
 
       // 1. CSV Input Node
-      const csvNodeId = 'node-csv';
+      const csvNodeId = "node-csv";
       addNode({
         id: csvNodeId,
-        type: 'csvInput',
-        label: 'Example Data',
+        type: "csvInput",
+        label: "Example Data",
         position: { x: 50, y: 50 },
         data: {
           fileId: id,
-          fileName: 'example.csv',
+          fileName: "example.csv",
           csvData: data,
           width: data[0]?.length || 0,
-          height: data.length
+          height: data.length,
         },
         inputs: {},
         outputs: {
-          data: null, width: null, height: null, fileName: null
-        }
+          data: null,
+          width: null,
+          height: null,
+          fileName: null,
+        },
       });
 
       // 2. Isolate Column Nodes (X and Y)
-      const col1NodeId = 'node-col-1';
-      const col2NodeId = 'node-col-2';
+      const col1NodeId = "node-col-1";
+      const col2NodeId = "node-col-2";
 
       addNode({
         id: col1NodeId,
-        type: 'isolateColumn',
-        label: 'Column 1 (X)',
+        type: "isolateColumn",
+        label: "Column 1 (X)",
         position: { x: 300, y: 50 },
         data: { columnIndex: 0 }, // First column
         inputs: { csvData: null },
-        outputs: { name: null, data: null }
+        outputs: { name: null, data: null },
       });
 
       addNode({
         id: col2NodeId,
-        type: 'isolateColumn',
-        label: 'Column 2 (Y)',
+        type: "isolateColumn",
+        label: "Column 2 (Y)",
         position: { x: 300, y: 200 },
         data: { columnIndex: 1 }, // Second column
         inputs: { csvData: null },
-        outputs: { name: null, data: null }
+        outputs: { name: null, data: null },
       });
 
       // Connect CSV to Columns
-      addConnection({ id: 'c1', sourceNodeId: csvNodeId, sourcePort: 'data', targetNodeId: col1NodeId, targetPort: 'csvData' });
-      addConnection({ id: 'c2', sourceNodeId: csvNodeId, sourcePort: 'data', targetNodeId: col2NodeId, targetPort: 'csvData' });
+      addConnection({
+        id: "c1",
+        sourceNodeId: csvNodeId,
+        sourcePort: "data",
+        targetNodeId: col1NodeId,
+        targetPort: "csvData",
+      });
+      addConnection({
+        id: "c2",
+        sourceNodeId: csvNodeId,
+        sourcePort: "data",
+        targetNodeId: col2NodeId,
+        targetPort: "csvData",
+      });
 
       // 3. Trace Node
-      const traceNodeId = 'node-trace-1';
+      const traceNodeId = "node-trace-1";
       addNode({
         id: traceNodeId,
-        type: 'trace',
-        label: 'Scatter Trace',
+        type: "trace",
+        label: "Scatter Trace",
         position: { x: 550, y: 100 },
         data: {
-          type: 'scatter',
-          mode: 'lines+markers',
-          name: 'Data Series 1'
+          type: "scatter",
+          mode: "lines+markers",
+          name: "Data Series 1",
         },
         inputs: { x: null, y: null, z: null },
-        outputs: { trace: null }
+        outputs: { trace: null },
       });
 
       // Connect Columns to Trace
-      addConnection({ id: 'c3', sourceNodeId: col1NodeId, sourcePort: 'data', targetNodeId: traceNodeId, targetPort: 'x' });
-      addConnection({ id: 'c4', sourceNodeId: col2NodeId, sourcePort: 'data', targetNodeId: traceNodeId, targetPort: 'y' });
+      addConnection({
+        id: "c3",
+        sourceNodeId: col1NodeId,
+        sourcePort: "data",
+        targetNodeId: traceNodeId,
+        targetPort: "x",
+      });
+      addConnection({
+        id: "c4",
+        sourceNodeId: col2NodeId,
+        sourcePort: "data",
+        targetNodeId: traceNodeId,
+        targetPort: "y",
+      });
 
       // 4. Joiner Node
-      const joinerNodeId = 'node-joiner';
+      const joinerNodeId = "node-joiner";
       addNode({
         id: joinerNodeId,
-        type: 'joiner',
-        label: 'Trace Joiner',
+        type: "joiner",
+        label: "Trace Joiner",
         position: { x: 800, y: 150 },
         data: {},
         inputs: { input0: null },
-        outputs: { list: null }
+        outputs: { list: null },
       });
 
       // Connect Trace to Joiner
-      addConnection({ id: 'c5', sourceNodeId: traceNodeId, sourcePort: 'trace', targetNodeId: joinerNodeId, targetPort: 'input0' });
+      addConnection({
+        id: "c5",
+        sourceNodeId: traceNodeId,
+        sourcePort: "trace",
+        targetNodeId: joinerNodeId,
+        targetPort: "input0",
+      });
 
       // 5. Plotly Node
-      const plotlyNodeId = 'node-plotly';
+      const plotlyNodeId = "node-plotly";
       addNode({
         id: plotlyNodeId,
-        type: 'plotly',
-        label: 'Main Chart',
+        type: "plotly",
+        label: "Main Chart",
         position: { x: 1000, y: 100 },
         data: {},
         inputs: { data: null, layout: null },
-        outputs: { selectedPoint: null, hoverPoint: null }
+        outputs: { selectedPoint: null, hoverPoint: null },
       });
 
       // Connect Joiner to Plotly
-      addConnection({ id: 'c6', sourceNodeId: joinerNodeId, sourcePort: 'list', targetNodeId: plotlyNodeId, targetPort: 'data' });
+      addConnection({
+        id: "c6",
+        sourceNodeId: joinerNodeId,
+        sourcePort: "list",
+        targetNodeId: plotlyNodeId,
+        targetPort: "data",
+      });
 
       // 6. Display Node for Events
-      const displayNodeId = 'node-display';
+      const displayNodeId = "node-display";
       addNode({
         id: displayNodeId,
-        type: 'display',
-        label: 'Selected Point',
+        type: "display",
+        label: "Selected Point",
         position: { x: 1000, y: 500 },
         data: { value: 0 },
         inputs: { value: null },
-        outputs: {}
+        outputs: {},
       });
 
       // Connect Plotly Event to Display
-      addConnection({ id: 'c7', sourceNodeId: plotlyNodeId, sourcePort: 'selectedPoint', targetNodeId: displayNodeId, targetPort: 'value' });
+      addConnection({
+        id: "c7",
+        sourceNodeId: plotlyNodeId,
+        sourcePort: "selectedPoint",
+        targetNodeId: displayNodeId,
+        targetPort: "value",
+      });
 
       triggerGraphUpdate();
     });
 });
 
 onUnmounted(() => {
-  window.removeEventListener('resize', handleWindowResize);
+  window.removeEventListener("resize", handleWindowResize);
 });
 </script>
 
@@ -1191,7 +1423,7 @@ html {
 }
 
 .resizer::after {
-  content: '';
+  content: "";
   position: absolute;
   top: 0;
   bottom: 0;
@@ -1319,7 +1551,6 @@ html {
   opacity: 0.8;
 }
 
-/* Premium Buttons */
 .custom-file-upload,
 .run-btn,
 .io-btn {
@@ -1382,15 +1613,23 @@ html {
 }
 
 .projects-btn {
-  background: linear-gradient(135deg, rgba(0, 210, 255, 0.1) 0%, rgba(58, 123, 213, 0.1) 100%);
+  background: linear-gradient(
+    135deg,
+    rgba(0, 210, 255, 0.1) 0%,
+    rgba(58, 123, 213, 0.1) 100%
+  );
   border-color: rgba(0, 210, 255, 0.3);
-  color: #00D2FF;
+  color: #00d2ff;
 }
 
 .projects-btn:hover {
-  background: linear-gradient(135deg, rgba(0, 210, 255, 0.2) 0%, rgba(58, 123, 213, 0.2) 100%);
+  background: linear-gradient(
+    135deg,
+    rgba(0, 210, 255, 0.2) 0%,
+    rgba(58, 123, 213, 0.2) 100%
+  );
   border-color: rgba(0, 210, 255, 0.5);
-  color: #00D2FF;
+  color: #00d2ff;
   box-shadow: 0 0 12px rgba(0, 210, 255, 0.2);
 }
 
@@ -1410,7 +1649,6 @@ html {
   box-shadow: 0 0 12px rgba(0, 214, 114, 0.2) !important;
 }
 
-/* Save Name Modal Styles */
 .save-name-modal-overlay {
   position: fixed;
   top: 0;
@@ -1427,7 +1665,7 @@ html {
 }
 
 .save-name-modal {
-  background: #1E1E1E;
+  background: #1e1e1e;
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 12px;
   padding: 24px;
@@ -1455,7 +1693,7 @@ html {
 }
 
 .save-name-input:focus {
-  border-color: #00D2FF;
+  border-color: #00d2ff;
 }
 
 .save-name-actions {
@@ -1480,7 +1718,7 @@ html {
 }
 
 .confirm-btn {
-  background: #00D2FF;
+  background: #00d2ff;
   color: #fff;
 }
 
@@ -1489,7 +1727,6 @@ html {
   cursor: not-allowed;
 }
 
-/* Custom Checkbox/Toggle Styles */
 .data-checkbox {
   display: flex;
   align-items: center;
@@ -1512,13 +1749,13 @@ html {
   transition: all 0.2s;
 }
 
-.data-checkbox input:checked+.check-box {
+.data-checkbox input:checked + .check-box {
   background: #007acc;
   border-color: #007acc;
 }
 
-.data-checkbox input:checked+.check-box::after {
-  content: '✓';
+.data-checkbox input:checked + .check-box::after {
+  content: "✓";
   position: absolute;
   top: -2px;
   left: 1px;
@@ -1526,7 +1763,6 @@ html {
   font-size: 10px;
 }
 
-/* Live Edit Toggle */
 .live-edit-toggle {
   display: flex;
   align-items: center;
@@ -1548,12 +1784,12 @@ html {
   transition: all 0.3s;
 }
 
-.live-edit-toggle input:checked+.toggle-slider {
+.live-edit-toggle input:checked + .toggle-slider {
   background: #00d672;
 }
 
 .toggle-slider::after {
-  content: '';
+  content: "";
   position: absolute;
   top: 2px;
   left: 2px;
@@ -1564,7 +1800,7 @@ html {
   transition: all 0.3s;
 }
 
-.live-edit-toggle input:checked+.toggle-slider::after {
+.live-edit-toggle input:checked + .toggle-slider::after {
   transform: translateX(12px);
   background: #fff;
 }
@@ -1577,11 +1813,10 @@ html {
   font-weight: 700;
 }
 
-.live-edit-toggle input:checked~.toggle-label {
+.live-edit-toggle input:checked ~ .toggle-label {
   color: #00d672;
 }
 
-/* Example Select */
 .example-select {
   background: #252525;
   color: #ccc;
@@ -1600,7 +1835,6 @@ html {
   color: #fff;
 }
 
-
 .resizing-overlay {
   position: fixed;
   top: 0;
@@ -1613,7 +1847,6 @@ html {
 </style>
 
 <style>
-/* New Layout Styles */
 .io-group {
   display: flex;
   align-items: center;
@@ -1635,12 +1868,10 @@ html {
   margin-top: 2px;
 }
 
-/* Ensure minimal width for the spacer to work */
 .top-bar {
   justify-content: space-between;
 }
 
-/* CSV Data Tab Toolbar */
 .data-toolbar {
   display: flex;
   align-items: center;
@@ -1703,13 +1934,21 @@ html {
   font-weight: 500;
   cursor: pointer;
   transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-  background: linear-gradient(135deg, rgba(0, 210, 255, 0.1) 0%, rgba(58, 123, 213, 0.1) 100%);
+  background: linear-gradient(
+    135deg,
+    rgba(0, 210, 255, 0.1) 0%,
+    rgba(58, 123, 213, 0.1) 100%
+  );
   border: 1px solid rgba(0, 210, 255, 0.3);
-  color: #00D2FF;
+  color: #00d2ff;
 }
 
 .upload-csv-btn:hover {
-  background: linear-gradient(135deg, rgba(0, 210, 255, 0.2) 0%, rgba(58, 123, 213, 0.2) 100%);
+  background: linear-gradient(
+    135deg,
+    rgba(0, 210, 255, 0.2) 0%,
+    rgba(58, 123, 213, 0.2) 100%
+  );
   border-color: rgba(0, 210, 255, 0.5);
   transform: translateY(-1px);
   box-shadow: 0 0 12px rgba(0, 210, 255, 0.2);
@@ -1751,7 +1990,6 @@ html {
   padding: 0 10px;
 }
 
-/* Top Bar CSV Controls */
 .csv-control-group {
   display: flex;
   gap: 8px;
@@ -1777,7 +2015,6 @@ html {
   color: #fff;
 }
 
-/* Controls Grid Layout Styles */
 .controls-container {
   padding: 10px;
   height: 100%;
@@ -1815,7 +2052,7 @@ html {
   transition: all 0.2s;
 }
 
-.edit-mode-toggle input:checked+span {
+.edit-mode-toggle input:checked + span {
   background: #007acc;
   color: white;
 }
@@ -1918,12 +2155,7 @@ html {
 
 .control-grid.editing {
   background: rgba(0, 0, 0, 0.1);
-  /* Subtle hint */
 }
-
-/* Control Tiles logic is in component, but grid layout needs to handle tile sizing/positioning */
-/* Currently using flex-wrap, but user asked for "grid view with tiles" */
-/* Flex wrap allows tiles to flow. */
 
 .rendered-control {
   width: 100%;
@@ -1931,8 +2163,6 @@ html {
 
 .legacy-list-warning {
   width: 100%;
-  /* display: flex;
-    justify-content: center; */
 }
 
 .auto-list {

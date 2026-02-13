@@ -9,27 +9,55 @@
     <div class="subplot-node-content">
       <div class="control-group">
         <label>Rows</label>
-        <input type="number" v-model.number="rows" @change="updateLayout" min="1" max="10">
+        <input
+          type="number"
+          v-model.number="rows"
+          @change="updateLayout"
+          min="1"
+          max="10"
+        />
       </div>
-      
+
       <div class="control-group">
         <label>Columns</label>
-        <input type="number" v-model.number="cols" @change="updateLayout" min="1" max="10">
+        <input
+          type="number"
+          v-model.number="cols"
+          @change="updateLayout"
+          min="1"
+          max="10"
+        />
       </div>
 
       <div class="control-section">
         <div class="section-title">Spacing</div>
         <div class="control-row">
-          <input type="number" v-model.number="horizontalSpacing" @change="updateLayout" placeholder="Horizontal" step="0.01" min="0" max="1">
-          <input type="number" v-model.number="verticalSpacing" @change="updateLayout" placeholder="Vertical" step="0.01" min="0" max="1">
+          <input
+            type="number"
+            v-model.number="horizontalSpacing"
+            @change="updateLayout"
+            placeholder="Horizontal"
+            step="0.01"
+            min="0"
+            max="1"
+          />
+          <input
+            type="number"
+            v-model.number="verticalSpacing"
+            @change="updateLayout"
+            placeholder="Vertical"
+            step="0.01"
+            min="0"
+            max="1"
+          />
         </div>
       </div>
 
       <div class="control-section">
         <div class="section-title">Subplot Types</div>
         <div class="subplot-grid" @wheel.stop>
-          <div 
-            v-for="(subplot, index) in subplots" 
+          <div
+            v-for="(subplot, index) in subplots"
             :key="index"
             class="subplot-cell"
             :class="{ selected: selectedSubplot === index }"
@@ -56,16 +84,16 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, computed, watch } from 'vue';
-import BaseNode from '../BaseNode.vue';
-import { type NodeDefinition, triggerGraphUpdate } from '../nodeEditorState';
+import { ref, onMounted, computed, watch } from "vue";
+import BaseNode from "../BaseNode.vue";
+import { type NodeDefinition, triggerGraphUpdate } from "../nodeEditorState";
 
 const props = defineProps<{
   node: NodeDefinition;
   selected: boolean;
 }>();
 
-defineEmits(['connect-start', 'connect-end', 'socket-click']);
+defineEmits(["connect-start", "connect-end", "socket-click"]);
 
 const rows = ref(2);
 const cols = ref(2);
@@ -79,7 +107,7 @@ const subplots = computed(() => {
   const result = [];
   for (let i = 0; i < total; i++) {
     result.push({
-      type: props.node.data.subplotTypes?.[i] || 'xy'
+      type: props.node.data.subplotTypes?.[i] || "xy",
     });
   }
   return result;
@@ -99,12 +127,12 @@ onMounted(() => {
   if (props.node.data.verticalSpacing !== undefined) {
     verticalSpacing.value = props.node.data.verticalSpacing;
   }
-  
+
   // Ensure output exists
-  if (!props.node.outputs['layout']) {
-    props.node.outputs['layout'] = { type: 'object' };
+  if (!props.node.outputs["layout"]) {
+    props.node.outputs["layout"] = { type: "object" };
   }
-  
+
   updateLayout();
 });
 
@@ -114,7 +142,7 @@ function updateLayout() {
   props.node.data.cols = cols.value;
   props.node.data.horizontalSpacing = horizontalSpacing.value;
   props.node.data.verticalSpacing = verticalSpacing.value;
-  
+
   // Save subplot types
   const types: string[] = [];
   for (let i = 0; i < subplots.value.length; i++) {
@@ -124,16 +152,19 @@ function updateLayout() {
     }
   }
   props.node.data.subplotTypes = types;
-  
+
   triggerGraphUpdate();
 }
 
 // Watch for changes in subplot types
-watch(() => subplots.value.map(s => s.type), (newTypes) => {
-  props.node.data.subplotTypes = newTypes;
-  triggerGraphUpdate();
-}, { deep: true });
-
+watch(
+  () => subplots.value.map((s) => s.type),
+  (newTypes) => {
+    props.node.data.subplotTypes = newTypes;
+    triggerGraphUpdate();
+  },
+  { deep: true }
+);
 </script>
 
 <style scoped>
@@ -177,7 +208,8 @@ label {
   font-weight: 500;
 }
 
-input[type="number"], select {
+input[type="number"],
+select {
   background: #1a1a1a;
   border: 1px solid #444;
   color: #eee;
@@ -187,7 +219,8 @@ input[type="number"], select {
   width: 100%;
 }
 
-input[type="number"]:focus, select:focus {
+input[type="number"]:focus,
+select:focus {
   border-color: #00d2ff;
   outline: none;
 }
@@ -201,7 +234,6 @@ input[type="number"]:focus, select:focus {
   padding: 2px;
 }
 
-/* Scrollbar for subplot grid */
 .subplot-grid::-webkit-scrollbar {
   width: 4px;
 }
