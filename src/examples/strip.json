@@ -1,0 +1,106 @@
+{
+    "nodes": [
+        {
+            "id": "node-y",
+            "type": "constant",
+            "label": "Values (Y)",
+            "position": {
+                "x": 100,
+                "y": 100
+            },
+            "data": {
+                "dataType": "json",
+                "value": "[1, 2, 2, 3, 3, 3, 4, 4, 5]"
+            },
+            "inputs": {},
+            "outputs": {
+                "output": null
+            }
+        },
+        {
+            "id": "node-x",
+            "type": "constant",
+            "label": "Categories (X)",
+            "position": {
+                "x": 100,
+                "y": 300
+            },
+            "data": {
+                "dataType": "json",
+                "value": "[\"A\", \"A\", \"A\", \"B\", \"B\", \"B\", \"A\", \"B\", \"A\"]"
+            },
+            "inputs": {},
+            "outputs": {
+                "output": null
+            }
+        },
+        {
+            "id": "node-trace",
+            "type": "trace",
+            "label": "Strip Trace",
+            "position": {
+                "x": 400,
+                "y": 200
+            },
+            "data": {
+                "type": "strip",
+                "name": "Strip Example"
+            },
+            "inputs": {
+                "x": null,
+                "y": null,
+                "text": null,
+                "jitter": null
+            },
+            "outputs": {
+                "trace": null
+            }
+        },
+        {
+            "id": "node-plotly",
+            "type": "plotly",
+            "label": "Plotly Chart",
+            "position": {
+                "x": 700,
+                "y": 200
+            },
+            "data": {},
+            "inputs": {
+                "data": null,
+                "layout": null
+            },
+            "outputs": {
+                "selectedPoint": null,
+                "hoverPoint": null
+            }
+        }
+    ],
+    "connections": [
+        {
+            "id": "conn-1",
+            "sourceNodeId": "node-y",
+            "sourcePort": "output",
+            "targetNodeId": "node-trace",
+            "targetPort": "y"
+        },
+        {
+            "id": "conn-2",
+            "sourceNodeId": "node-x",
+            "sourcePort": "output",
+            "targetNodeId": "node-trace",
+            "targetPort": "x"
+        },
+        {
+            "id": "conn-3",
+            "sourceNodeId": "node-trace",
+            "sourcePort": "trace",
+            "targetNodeId": "node-plotly",
+            "targetPort": "data"
+        }
+    ],
+    "zoom": 1,
+    "pan": {
+        "x": 0,
+        "y": 0
+    }
+}

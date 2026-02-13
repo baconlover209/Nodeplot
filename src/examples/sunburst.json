@@ -1,0 +1,131 @@
+{
+    "nodes": [
+        {
+            "id": "node-labels",
+            "type": "constant",
+            "label": "Labels",
+            "position": {
+                "x": 100,
+                "y": 50
+            },
+            "data": {
+                "dataType": "json",
+                "value": "[\"Eve\", \"Cain\", \"Seth\", \"Enos\", \"Noam\", \"Abel\", \"Awan\", \"Enoch\", \"Azura\"]"
+            },
+            "inputs": {},
+            "outputs": {
+                "output": null
+            }
+        },
+        {
+            "id": "node-parents",
+            "type": "constant",
+            "label": "Parents",
+            "position": {
+                "x": 100,
+                "y": 200
+            },
+            "data": {
+                "dataType": "json",
+                "value": "[\"\", \"Eve\", \"Eve\", \"Seth\", \"Seth\", \"Eve\", \"Eve\", \"Awan\", \"Eve\"]"
+            },
+            "inputs": {},
+            "outputs": {
+                "output": null
+            }
+        },
+        {
+            "id": "node-values",
+            "type": "constant",
+            "label": "Values",
+            "position": {
+                "x": 100,
+                "y": 350
+            },
+            "data": {
+                "dataType": "json",
+                "value": "[10, 14, 12, 10, 2, 6, 6, 4, 4]"
+            },
+            "inputs": {},
+            "outputs": {
+                "output": null
+            }
+        },
+        {
+            "id": "node-trace",
+            "type": "trace",
+            "label": "Sunburst Trace",
+            "position": {
+                "x": 400,
+                "y": 200
+            },
+            "data": {
+                "type": "sunburst",
+                "name": "Sunburst Example"
+            },
+            "inputs": {
+                "labels": null,
+                "parents": null,
+                "values": null,
+                "text": null,
+                "marker.colors": null
+            },
+            "outputs": {
+                "trace": null
+            }
+        },
+        {
+            "id": "node-plotly",
+            "type": "plotly",
+            "label": "Plotly Chart",
+            "position": {
+                "x": 700,
+                "y": 200
+            },
+            "data": {},
+            "inputs": {
+                "data": null,
+                "layout": null
+            },
+            "outputs": {
+                "selectedPoint": null,
+                "hoverPoint": null
+            }
+        }
+    ],
+    "connections": [
+        {
+            "id": "conn-1",
+            "sourceNodeId": "node-labels",
+            "sourcePort": "output",
+            "targetNodeId": "node-trace",
+            "targetPort": "labels"
+        },
+        {
+            "id": "conn-2",
+            "sourceNodeId": "node-parents",
+            "sourcePort": "output",
+            "targetNodeId": "node-trace",
+            "targetPort": "parents"
+        },
+        {
+            "id": "conn-3",
+            "sourceNodeId": "node-values",
+            "sourcePort": "output",
+            "targetNodeId": "node-trace",
+            "targetPort": "values"
+        },
+        {
+            "id": "conn-4",
+            "sourceNodeId": "node-trace",
+            "sourcePort": "trace",
+            "targetNodeId": "node-plotly",
+            "targetPort": "data"
+        }
+    ],
+    "zoom": 1,
+    "pan": {
+        "x": 0,
+        "y": 0
+    }
+}

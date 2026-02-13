@@ -1,0 +1,85 @@
+{
+    "nodes": [
+        {
+            "id": "node-values",
+            "type": "constant",
+            "label": "Values",
+            "position": {
+                "x": 100,
+                "y": 100
+            },
+            "data": {
+                "dataType": "json",
+                "value": "[1, 2, 2, 3, 3, 3, 4, 4, 5, 5, 5, 5, 6, 6, 7]"
+            },
+            "inputs": {},
+            "outputs": {
+                "output": null
+            }
+        },
+        {
+            "id": "node-trace",
+            "type": "trace",
+            "label": "Violin Trace",
+            "position": {
+                "x": 400,
+                "y": 200
+            },
+            "data": {
+                "type": "violin",
+                "name": "Violin Example"
+            },
+            "inputs": {
+                "y": null,
+                "x": null,
+                "text": null,
+                "marker.color": null,
+                "side": null,
+                "box": null,
+                "meanline": null
+            },
+            "outputs": {
+                "trace": null
+            }
+        },
+        {
+            "id": "node-plotly",
+            "type": "plotly",
+            "label": "Plotly Chart",
+            "position": {
+                "x": 700,
+                "y": 200
+            },
+            "data": {},
+            "inputs": {
+                "data": null,
+                "layout": null
+            },
+            "outputs": {
+                "selectedPoint": null,
+                "hoverPoint": null
+            }
+        }
+    ],
+    "connections": [
+        {
+            "id": "conn-1",
+            "sourceNodeId": "node-values",
+            "sourcePort": "output",
+            "targetNodeId": "node-trace",
+            "targetPort": "y"
+        },
+        {
+            "id": "conn-3",
+            "sourceNodeId": "node-trace",
+            "sourcePort": "trace",
+            "targetNodeId": "node-plotly",
+            "targetPort": "data"
+        }
+    ],
+    "zoom": 1,
+    "pan": {
+        "x": 0,
+        "y": 0
+    }
+}

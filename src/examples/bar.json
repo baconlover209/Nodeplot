@@ -1,0 +1,107 @@
+{
+    "nodes": [
+        {
+            "id": "node-labels",
+            "type": "constant",
+            "label": "Labels",
+            "position": {
+                "x": 100,
+                "y": 100
+            },
+            "data": {
+                "dataType": "json",
+                "value": "[\"A\", \"B\", \"C\", \"D\", \"E\"]"
+            },
+            "inputs": {},
+            "outputs": {
+                "output": null
+            }
+        },
+        {
+            "id": "node-values",
+            "type": "constant",
+            "label": "Values",
+            "position": {
+                "x": 100,
+                "y": 300
+            },
+            "data": {
+                "dataType": "json",
+                "value": "[10, 20, 15, 25, 30]"
+            },
+            "inputs": {},
+            "outputs": {
+                "output": null
+            }
+        },
+        {
+            "id": "node-trace",
+            "type": "trace",
+            "label": "Bar Trace",
+            "position": {
+                "x": 400,
+                "y": 200
+            },
+            "data": {
+                "type": "bar",
+                "name": "Bar Example"
+            },
+            "inputs": {
+                "x": null,
+                "y": null,
+                "text": null,
+                "marker.color": null,
+                "base": null
+            },
+            "outputs": {
+                "trace": null
+            }
+        },
+        {
+            "id": "node-plotly",
+            "type": "plotly",
+            "label": "Plotly Chart",
+            "position": {
+                "x": 700,
+                "y": 200
+            },
+            "data": {},
+            "inputs": {
+                "data": null,
+                "layout": null
+            },
+            "outputs": {
+                "selectedPoint": null,
+                "hoverPoint": null
+            }
+        }
+    ],
+    "connections": [
+        {
+            "id": "conn-1",
+            "sourceNodeId": "node-labels",
+            "sourcePort": "output",
+            "targetNodeId": "node-trace",
+            "targetPort": "x"
+        },
+        {
+            "id": "conn-2",
+            "sourceNodeId": "node-values",
+            "sourcePort": "output",
+            "targetNodeId": "node-trace",
+            "targetPort": "y"
+        },
+        {
+            "id": "conn-3",
+            "sourceNodeId": "node-trace",
+            "sourcePort": "trace",
+            "targetNodeId": "node-plotly",
+            "targetPort": "data"
+        }
+    ],
+    "zoom": 1,
+    "pan": {
+        "x": 0,
+        "y": 0
+    }
+}

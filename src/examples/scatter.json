@@ -1,0 +1,173 @@
+{
+    "nodes": [
+        {
+            "id": "node-csv",
+            "type": "csvInput",
+            "label": "CSV Input",
+            "position": {
+                "x": 100,
+                "y": 100
+            },
+            "data": {
+                "fileName": "example_data.csv",
+                "csvData": [
+                    [
+                        "x",
+                        "y"
+                    ],
+                    [
+                        1,
+                        2
+                    ],
+                    [
+                        2,
+                        3
+                    ],
+                    [
+                        3,
+                        5
+                    ],
+                    [
+                        4,
+                        4
+                    ],
+                    [
+                        5,
+                        7
+                    ]
+                ],
+                "width": 2,
+                "height": 6
+            },
+            "inputs": {},
+            "outputs": {
+                "data": null,
+                "width": null,
+                "height": null,
+                "fileName": null
+            }
+        },
+        {
+            "id": "node-iso-x",
+            "type": "isolateColumn",
+            "label": "Isolate X",
+            "position": {
+                "x": 400,
+                "y": 50
+            },
+            "data": {
+                "columnIndex": 0
+            },
+            "inputs": {
+                "csvData": null
+            },
+            "outputs": {
+                "name": null,
+                "data": null
+            }
+        },
+        {
+            "id": "node-iso-y",
+            "type": "isolateColumn",
+            "label": "Isolate Y",
+            "position": {
+                "x": 400,
+                "y": 250
+            },
+            "data": {
+                "columnIndex": 1
+            },
+            "inputs": {
+                "csvData": null
+            },
+            "outputs": {
+                "name": null,
+                "data": null
+            }
+        },
+        {
+            "id": "node-trace",
+            "type": "trace",
+            "label": "Trace",
+            "position": {
+                "x": 700,
+                "y": 150
+            },
+            "data": {
+                "type": "scatter",
+                "mode": "lines+markers",
+                "name": "Scatter Example"
+            },
+            "inputs": {
+                "x": null,
+                "y": null,
+                "text": null,
+                "marker.color": null,
+                "marker.size": null
+            },
+            "outputs": {
+                "trace": null
+            }
+        },
+        {
+            "id": "node-plotly",
+            "type": "plotly",
+            "label": "Plotly Chart",
+            "position": {
+                "x": 1000,
+                "y": 150
+            },
+            "data": {},
+            "inputs": {
+                "data": null,
+                "layout": null
+            },
+            "outputs": {
+                "selectedPoint": null,
+                "hoverPoint": null
+            }
+        }
+    ],
+    "connections": [
+        {
+            "id": "conn-1",
+            "sourceNodeId": "node-csv",
+            "sourcePort": "data",
+            "targetNodeId": "node-iso-x",
+            "targetPort": "csvData"
+        },
+        {
+            "id": "conn-2",
+            "sourceNodeId": "node-csv",
+            "sourcePort": "data",
+            "targetNodeId": "node-iso-y",
+            "targetPort": "csvData"
+        },
+        {
+            "id": "conn-3",
+            "sourceNodeId": "node-iso-x",
+            "sourcePort": "data",
+            "targetNodeId": "node-trace",
+            "targetPort": "x"
+        },
+        {
+            "id": "conn-4",
+            "sourceNodeId": "node-iso-y",
+            "sourcePort": "data",
+            "targetNodeId": "node-trace",
+            "targetPort": "y"
+        },
+        {
+            "id": "conn-5",
+            "sourceNodeId": "node-trace",
+            "sourcePort": "trace",
+            "targetNodeId": "node-plotly",
+            "targetPort": "data"
+        }
+    ],
+    "zoom": 1,
+    "pan": {
+        "x": 0,
+        "y": 0
+    }
+}
