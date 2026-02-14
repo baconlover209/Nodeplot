@@ -1,68 +1,32 @@
 <template>
-  <BaseNode
-    :node="node"
-    :selected="selected"
-    @connect-start="$emit('connect-start', $event)"
-    @connect-end="$emit('connect-end', $event)"
-    @socket-click="$emit('socket-click', $event)"
-  >
+  <BaseNode :node="node" :selected="selected" @connect-start="$emit('connect-start', $event)"
+    @connect-end="$emit('connect-end', $event)" @socket-click="$emit('socket-click', $event)">
     <div class="subplot-node-content">
       <div class="control-group">
         <label>Rows</label>
-        <input
-          type="number"
-          v-model.number="rows"
-          @change="updateLayout"
-          min="1"
-          max="10"
-        />
+        <input type="number" v-model.number="rows" @change="updateLayout" min="1" max="10" />
       </div>
 
       <div class="control-group">
         <label>Columns</label>
-        <input
-          type="number"
-          v-model.number="cols"
-          @change="updateLayout"
-          min="1"
-          max="10"
-        />
+        <input type="number" v-model.number="cols" @change="updateLayout" min="1" max="10" />
       </div>
 
       <div class="control-section">
         <div class="section-title">Spacing</div>
         <div class="control-row">
-          <input
-            type="number"
-            v-model.number="horizontalSpacing"
-            @change="updateLayout"
-            placeholder="Horizontal"
-            step="0.01"
-            min="0"
-            max="1"
-          />
-          <input
-            type="number"
-            v-model.number="verticalSpacing"
-            @change="updateLayout"
-            placeholder="Vertical"
-            step="0.01"
-            min="0"
-            max="1"
-          />
+          <input type="number" v-model.number="horizontalSpacing" @change="updateLayout" placeholder="Horizontal"
+            step="0.01" min="0" max="1" />
+          <input type="number" v-model.number="verticalSpacing" @change="updateLayout" placeholder="Vertical"
+            step="0.01" min="0" max="1" />
         </div>
       </div>
 
       <div class="control-section">
         <div class="section-title">Subplot Types</div>
-        <div class="subplot-grid" @wheel.stop>
-          <div
-            v-for="(subplot, index) in subplots"
-            :key="index"
-            class="subplot-cell"
-            :class="{ selected: selectedSubplot === index }"
-            @click="selectedSubplot = index"
-          >
+        <div class="subplot-grid">
+          <div v-for="(subplot, index) in subplots" :key="index" class="subplot-cell"
+            :class="{ selected: selectedSubplot === index }" @click="selectedSubplot = index">
             <div class="cell-label">{{ index + 1 }}</div>
             <select v-model="subplot.type" @change="updateLayout" @click.stop>
               <option value="xy">XY</option>
@@ -237,6 +201,7 @@ select:focus {
 .subplot-grid::-webkit-scrollbar {
   width: 4px;
 }
+
 .subplot-grid::-webkit-scrollbar-thumb {
   background: #444;
   border-radius: 2px;

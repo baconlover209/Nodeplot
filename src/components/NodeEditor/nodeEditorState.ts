@@ -298,7 +298,7 @@ export const NODE_CATEGORIES = [
     {
         label: 'Data',
         color: '#F4B400', // Gold/Orange
-        nodeTypes: ['csvInput', 'isolateColumn', 'joiner', 'geojson', 'save', 'index']
+        nodeTypes: ['csvInput', 'isolateColumn', 'joiner', 'geojson', 'save', 'index', 'jsonExtraction']
     },
     {
         label: 'Graphing',
@@ -677,6 +677,17 @@ function getInputValue(nodeId: string, inputName: string): any {
     return null;
 }
 
+export function getInputValueLive(nodeId: string, inputName: string): any {
+    const conn = state.connections.find(c => c.targetNodeId === nodeId && c.targetPort === inputName);
+    if (!conn) return null;
+
+    const sourceValues = nodeValues[conn.sourceNodeId];
+    if (sourceValues && sourceValues[conn.sourcePort] !== undefined) {
+        return sourceValues[conn.sourcePort];
+    }
+    return null;
+}
+
 function evaluateNode(node: NodeDefinition) {
     if (node.type === 'number') {
         const val = node.data.value ?? 0;
@@ -789,7 +800,41 @@ function evaluateNode(node: NodeDefinition) {
             values['output'] = node.data.fetchedContent ?? null;
             // Also expose the status and URL for debugging
             values['status'] = node.data.status || 'idle';
-            values['url'] = getInputValue(node.id, 'url') ?? node.data.manualUrl;
+            const url = getInputValue(node.id, 'url') ?? node.data.manualUrl;
+            values['url'] = url;
+
+            // Added for CSV/Spreadsheet/Image support
+            if (node.data.width !== undefined && node.data.height !== undefined) {
+                // If dimensions were already measured (e.g. for images)
+                values['width'] = node.data.width;
+                values['height'] = node.data.height;
+            } else if (Array.isArray(node.data.fetchedContent)) {
+                // For CSV arrays
+                values['width'] = (node.data.fetchedContent.length > 0 && node.data.fetchedContent[0]) ? node.data.fetchedContent[0].length : 0;
+                values['height'] = node.data.fetchedContent.length;
+            } else {
+                values['width'] = null;
+                values['height'] = null;
+            }
+
+            // Improved fileName derivation (works for URLs, local files, and uploaded assets)
+            const getFileName = (source: any) => {
+                if (!source) return 'Resource';
+                const str = String(source);
+
+                // Special case for base64 (though LinkNode usually has a manualUrl if it was a file)
+                if (str.startsWith('data:image/')) {
+                    const type = str.split(';')[0]?.split('/')[1] || 'png';
+                    return `image.${type}`;
+                }
+
+                // Handle file:// or regular paths/URLs
+                const cleanStr = str.replace('file://', '');
+                const parts = cleanStr.split(/[\\\/]/).filter(p => p.length > 0);
+                return parts.pop() || 'Resource';
+            };
+
+            values['fileName'] = getFileName(url);
         }
     }
     else if (node.type === 'display') {
@@ -2043,8 +2088,9 @@ function evaluateNode(node: NodeDefinition) {
         // Merged Traces Support (automatic axis assignment if needed?)
         // The user said "takes in merged traces and outputs a layout".
         // We output both the layout and the modified traces.
-        const inputTraces = getInputValue(node.id, 'traces');
-        if (inputTraces && Array.isArray(inputTraces)) {
+        const rawTraces = getInputValue(node.id, 'traces');
+        if (rawTraces) {
+            const inputTraces = Array.isArray(rawTraces) ? rawTraces : [rawTraces];
             const mappings = data.traceMappings || {};
             const modifiedTraces = inputTraces.map((trace: any, index: number) => {
                 const newTrace = { ...trace };
@@ -2063,10 +2109,37 @@ function evaluateNode(node: NodeDefinition) {
             if (values) {
                 values['traces'] = modifiedTraces;
             }
+        } else {
+            if (values) values['traces'] = [];
         }
 
         if (values) {
             values['layout'] = layout;
+        }
+    }
+    else if (node.type === 'jsonExtraction') {
+        const json = getInputValue(node.id, 'json');
+        if (!nodeValues[node.id]) nodeValues[node.id] = {};
+        const values = nodeValues[node.id];
+
+        if (values) {
+            // Clear old values to avoid leaking keys that no longer exist
+            for (const key in values) delete values[key];
+
+            if (json && typeof json === 'object' && json !== null) {
+                if (Array.isArray(json)) {
+                    values['length'] = json.length;
+                    // Also expose indices? Maybe 0..9?
+                    const maxIndices = Math.min(json.length, 50);
+                    for (let i = 0; i < maxIndices; i++) {
+                        values[i.toString()] = json[i];
+                    }
+                } else {
+                    for (const key in json) {
+                        values[key] = json[key];
+                    }
+                }
+            }
         }
     }
 }

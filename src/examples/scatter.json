@@ -2,46 +2,20 @@
     "nodes": [
         {
             "id": "node-csv",
-            "type": "csvInput",
-            "label": "CSV Input",
+            "type": "link",
+            "label": "Example Data",
             "position": {
                 "x": 100,
-                "y": 100
+                "y": 200
             },
             "data": {
-                "fileName": "example_data.csv",
-                "csvData": [
-                    [
-                        "x",
-                        "y"
-                    ],
-                    [
-                        1,
-                        2
-                    ],
-                    [
-                        2,
-                        3
-                    ],
-                    [
-                        3,
-                        5
-                    ],
-                    [
-                        4,
-                        4
-                    ],
-                    [
-                        5,
-                        7
-                    ]
-                ],
-                "width": 2,
-                "height": 6
+                "manualUrl": "https://github.com/baconlover209/Nodeplot/blob/main/exampleData.csv"
             },
-            "inputs": {},
+            "inputs": {
+                "url": null
+            },
             "outputs": {
-                "data": null,
+                "output": null,
                 "width": null,
                 "height": null,
                 "fileName": null
@@ -52,7 +26,7 @@
             "type": "isolateColumn",
             "label": "Isolate X",
             "position": {
-                "x": 400,
+                "x": 500,
                 "y": 50
             },
             "data": {
@@ -71,8 +45,8 @@
             "type": "isolateColumn",
             "label": "Isolate Y",
             "position": {
-                "x": 400,
-                "y": 250
+                "x": 500,
+                "y": 350
             },
             "data": {
                 "columnIndex": 1
@@ -90,8 +64,8 @@
             "type": "trace",
             "label": "Trace",
             "position": {
-                "x": 700,
-                "y": 150
+                "x": 900,
+                "y": 200
             },
             "data": {
                 "type": "scatter",
@@ -114,8 +88,8 @@
             "type": "plotly",
             "label": "Plotly Chart",
             "position": {
-                "x": 1000,
-                "y": 150
+                "x": 1300,
+                "y": 200
             },
             "data": {},
             "inputs": {
@@ -132,14 +106,14 @@
         {
             "id": "conn-1",
             "sourceNodeId": "node-csv",
-            "sourcePort": "data",
+            "sourcePort": "output",
             "targetNodeId": "node-iso-x",
             "targetPort": "csvData"
         },
         {
             "id": "conn-2",
             "sourceNodeId": "node-csv",
-            "sourcePort": "data",
+            "sourcePort": "output",
             "targetNodeId": "node-iso-y",
             "targetPort": "csvData"
         },
@@ -165,9 +139,9 @@
             "targetPort": "data"
         }
     ],
-    "zoom": 1,
+    "zoom": 0.9,
     "pan": {
-        "x": 0,
-        "y": 0
+        "x": 50,
+        "y": 50
     }
 }

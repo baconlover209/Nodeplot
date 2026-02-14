@@ -1,37 +1,57 @@
 {
     "nodes": [
         {
-            "id": "node-y",
-            "type": "constant",
-            "label": "Values (Y)",
+            "id": "node-data",
+            "type": "link",
+            "label": "Example Data",
             "position": {
                 "x": 100,
-                "y": 100
+                "y": 250
             },
             "data": {
-                "dataType": "json",
-                "value": "[1, 2, 2, 3, 3, 3, 4, 4, 5]"
+                "manualUrl": "https://github.com/baconlover209/Nodeplot/blob/main/exampleData.csv"
             },
-            "inputs": {},
+            "inputs": {
+                "url": null
+            },
             "outputs": {
                 "output": null
             }
         },
         {
             "id": "node-x",
-            "type": "constant",
+            "type": "isolateColumn",
             "label": "Categories (X)",
             "position": {
-                "x": 100,
-                "y": 300
+                "x": 500,
+                "y": 100
             },
             "data": {
-                "dataType": "json",
-                "value": "[\"A\", \"A\", \"A\", \"B\", \"B\", \"B\", \"A\", \"B\", \"A\"]"
+                "columnIndex": 13
             },
-            "inputs": {},
+            "inputs": {
+                "csvData": null
+            },
             "outputs": {
-                "output": null
+                "data": null
+            }
+        },
+        {
+            "id": "node-y",
+            "type": "isolateColumn",
+            "label": "Values (Y)",
+            "position": {
+                "x": 500,
+                "y": 400
+            },
+            "data": {
+                "columnIndex": 14
+            },
+            "inputs": {
+                "csvData": null
+            },
+            "outputs": {
+                "data": null
             }
         },
         {
@@ -39,8 +59,8 @@
             "type": "trace",
             "label": "Strip Trace",
             "position": {
-                "x": 400,
-                "y": 200
+                "x": 900,
+                "y": 250
             },
             "data": {
                 "type": "strip",
@@ -48,9 +68,7 @@
             },
             "inputs": {
                 "x": null,
-                "y": null,
-                "text": null,
-                "jitter": null
+                "y": null
             },
             "outputs": {
                 "trace": null
@@ -61,46 +79,57 @@
             "type": "plotly",
             "label": "Plotly Chart",
             "position": {
-                "x": 700,
-                "y": 200
+                "x": 1300,
+                "y": 250
             },
             "data": {},
             "inputs": {
                 "data": null,
                 "layout": null
             },
-            "outputs": {
-                "selectedPoint": null,
-                "hoverPoint": null
-            }
+            "outputs": {}
         }
     ],
     "connections": [
         {
-            "id": "conn-1",
-            "sourceNodeId": "node-y",
+            "id": "c1",
+            "sourceNodeId": "node-data",
             "sourcePort": "output",
-            "targetNodeId": "node-trace",
-            "targetPort": "y"
+            "targetNodeId": "node-x",
+            "targetPort": "csvData"
         },
         {
-            "id": "conn-2",
-            "sourceNodeId": "node-x",
+            "id": "c2",
+            "sourceNodeId": "node-data",
             "sourcePort": "output",
+            "targetNodeId": "node-y",
+            "targetPort": "csvData"
+        },
+        {
+            "id": "c3",
+            "sourceNodeId": "node-x",
+            "sourcePort": "data",
             "targetNodeId": "node-trace",
             "targetPort": "x"
         },
         {
-            "id": "conn-3",
+            "id": "c4",
+            "sourceNodeId": "node-y",
+            "sourcePort": "data",
+            "targetNodeId": "node-trace",
+            "targetPort": "y"
+        },
+        {
+            "id": "c5",
             "sourceNodeId": "node-trace",
             "sourcePort": "trace",
             "targetNodeId": "node-plotly",
             "targetPort": "data"
         }
     ],
-    "zoom": 1,
+    "zoom": 0.9,
     "pan": {
-        "x": 0,
-        "y": 0
+        "x": 50,
+        "y": 50
     }
 }

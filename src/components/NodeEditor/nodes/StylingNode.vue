@@ -1,12 +1,6 @@
 <template>
-  <BaseNode
-    :node="node"
-    :selected="selected"
-    class="styling-node"
-    @connect-start="$emit('connect-start', $event)"
-    @connect-end="$emit('connect-end', $event)"
-    @socket-click="$emit('socket-click', $event)"
-  >
+  <BaseNode :node="node" :selected="selected" class="styling-node" @connect-start="$emit('connect-start', $event)"
+    @connect-end="$emit('connect-end', $event)" @socket-click="$emit('socket-click', $event)">
     <div class="styling-node-content">
       <div class="styling-header">
         <div class="header-main">
@@ -32,45 +26,27 @@
       </div>
 
       <div class="component-grid">
-        <div
-          v-for="comp in filteredComponents"
-          :key="comp.id"
-          class="comp-card"
-          :class="{ active: activeComp === comp.id, found: comp.isFound }"
-          @click="activeComp = comp.id"
-        >
+        <div v-for="comp in filteredComponents" :key="comp.id" class="comp-card"
+          :class="{ active: activeComp === comp.id, found: comp.isFound }" @click="activeComp = comp.id">
           <div :class="comp.icon"></div>
           <span class="comp-name">{{ comp.label }}</span>
-          <div
-            class="found-dot"
-            v-if="comp.isFound"
-            title="Detected in trace"
-          ></div>
+          <div class="found-dot" v-if="comp.isFound" title="Detected in trace"></div>
         </div>
       </div>
 
       <div class="styling-controls" v-if="activeComp">
-        <div class="control-scroll-area" @wheel.stop>
+        <div class="control-scroll-area">
           <!-- Marker Controls -->
           <div v-if="activeComp === 'marker'" class="comp-group">
             <div class="group-title">Marker Properties</div>
             <div class="control-row">
               <div class="input-wrap">
                 <label>Color</label>
-                <input
-                  type="text"
-                  v-model="styling.marker_color"
-                  @input="updateData"
-                  placeholder="blue / #rgb"
-                />
+                <input type="text" v-model="styling.marker_color" @input="updateData" placeholder="blue / #rgb" />
               </div>
               <div class="input-wrap" style="width: 80px">
                 <label>Size</label>
-                <input
-                  type="number"
-                  v-model.number="styling.marker_size"
-                  @input="updateData"
-                />
+                <input type="number" v-model.number="styling.marker_size" @input="updateData" />
               </div>
             </div>
             <div class="control-row">
@@ -88,33 +64,19 @@
               </div>
               <div class="input-wrap" style="width: 80px">
                 <label>Opacity</label>
-                <input
-                  type="number"
-                  v-model.number="styling.marker_opacity"
-                  step="0.1"
-                  min="0"
-                  max="1"
-                  @input="updateData"
-                />
+                <input type="number" v-model.number="styling.marker_opacity" step="0.1" min="0" max="1"
+                  @input="updateData" />
               </div>
             </div>
             <div class="group-subtitle">Border</div>
             <div class="control-row">
               <div class="input-wrap">
                 <label>Line Color</label>
-                <input
-                  type="text"
-                  v-model="styling.marker_line_color"
-                  @input="updateData"
-                />
+                <input type="text" v-model="styling.marker_line_color" @input="updateData" />
               </div>
               <div class="input-wrap" style="width: 80px">
                 <label>Width</label>
-                <input
-                  type="number"
-                  v-model.number="styling.marker_line_width"
-                  @input="updateData"
-                />
+                <input type="number" v-model.number="styling.marker_line_width" @input="updateData" />
               </div>
             </div>
           </div>
@@ -125,19 +87,11 @@
             <div class="control-row">
               <div class="input-wrap">
                 <label>Color</label>
-                <input
-                  type="text"
-                  v-model="styling.line_color"
-                  @input="updateData"
-                />
+                <input type="text" v-model="styling.line_color" @input="updateData" />
               </div>
               <div class="input-wrap" style="width: 80px">
                 <label>Width</label>
-                <input
-                  type="number"
-                  v-model.number="styling.line_width"
-                  @input="updateData"
-                />
+                <input type="number" v-model.number="styling.line_width" @input="updateData" />
               </div>
             </div>
             <div class="control-row">
@@ -184,11 +138,7 @@
             <div class="control-row">
               <div class="input-wrap">
                 <label>Fill Color</label>
-                <input
-                  type="text"
-                  v-model="styling.fillcolor"
-                  @input="updateData"
-                />
+                <input type="text" v-model="styling.fillcolor" @input="updateData" />
               </div>
             </div>
           </div>
@@ -212,30 +162,18 @@
             <div class="control-row">
               <div class="input-wrap">
                 <label>Color</label>
-                <input
-                  type="text"
-                  v-model="styling.textfont_color"
-                  @input="updateData"
-                />
+                <input type="text" v-model="styling.textfont_color" @input="updateData" />
               </div>
               <div class="input-wrap" style="width: 80px">
                 <label>Size</label>
-                <input
-                  type="number"
-                  v-model.number="styling.textfont_size"
-                  @input="updateData"
-                />
+                <input type="number" v-model.number="styling.textfont_size" @input="updateData" />
               </div>
             </div>
             <div class="control-row">
               <div class="input-wrap">
                 <label>Family</label>
-                <input
-                  type="text"
-                  v-model="styling.textfont_family"
-                  @input="updateData"
-                  placeholder="Arial, sans-serif"
-                />
+                <input type="text" v-model="styling.textfont_family" @input="updateData"
+                  placeholder="Arial, sans-serif" />
               </div>
             </div>
           </div>
@@ -252,45 +190,23 @@
             <div v-if="selectedTrace?.type === 'pie'" class="control-row">
               <div class="input-wrap">
                 <label>Hole Size</label>
-                <input
-                  type="number"
-                  v-model.number="styling.hole"
-                  step="0.1"
-                  min="0"
-                  max="0.9"
-                  @input="updateData"
-                />
+                <input type="number" v-model.number="styling.hole" step="0.1" min="0" max="0.9" @input="updateData" />
               </div>
             </div>
             <div class="control-row">
               <div class="check-wrap">
-                <input
-                  type="checkbox"
-                  v-model="styling.showlegend"
-                  @change="updateData"
-                />
+                <input type="checkbox" v-model="styling.showlegend" @change="updateData" />
                 <label>Show Legend</label>
               </div>
               <div class="check-wrap">
-                <input
-                  type="checkbox"
-                  v-model="styling.visible"
-                  @change="updateData"
-                />
+                <input type="checkbox" v-model="styling.visible" @change="updateData" />
                 <label>Visible</label>
               </div>
             </div>
             <div class="control-row">
               <div class="input-wrap">
                 <label>Opacity</label>
-                <input
-                  type="number"
-                  v-model.number="styling.opacity"
-                  step="0.1"
-                  min="0"
-                  max="1"
-                  @input="updateData"
-                />
+                <input type="number" v-model.number="styling.opacity" step="0.1" min="0" max="1" @input="updateData" />
               </div>
             </div>
           </div>
@@ -300,21 +216,10 @@
             <div class="group-title">Color Palette & Scale</div>
 
             <div v-if="isDiscreteTrace" class="comp-subgroup">
-              <div
-                v-if="discreteLabels.length > 0 && discreteLabels.length <= 12"
-                class="category-list"
-              >
-                <div
-                  v-for="(label, idx) in discreteLabels"
-                  :key="idx"
-                  class="category-item"
-                >
+              <div v-if="discreteLabels.length > 0 && discreteLabels.length <= 12" class="category-list">
+                <div v-for="(label, idx) in discreteLabels" :key="idx" class="category-item">
                   <span class="label-text">{{ label }}</span>
-                  <input
-                    type="color"
-                    v-model="categoryColors[label as string]"
-                    @input="updateCategoryStyles"
-                  />
+                  <input type="color" v-model="categoryColors[label as string]" @input="updateCategoryStyles" />
                 </div>
               </div>
               <div v-else-if="discreteLabels.length > 12" class="fallback-note">
@@ -325,12 +230,8 @@
               <div class="control-row">
                 <div class="input-wrap">
                   <label>Colors (JSON Array or Variable)</label>
-                  <input
-                    type="text"
-                    v-model="styling.marker_colors_json"
-                    @input="updateData"
-                    placeholder='["red", "blue", "green"]'
-                  />
+                  <input type="text" v-model="styling.marker_colors_json" @input="updateData"
+                    placeholder='["red", "blue", "green"]' />
                 </div>
               </div>
             </div>
@@ -356,19 +257,11 @@
               </div>
               <div class="control-row">
                 <div class="check-wrap">
-                  <input
-                    type="checkbox"
-                    v-model="styling.showscale"
-                    @change="updateData"
-                  />
+                  <input type="checkbox" v-model="styling.showscale" @change="updateData" />
                   <label>Show Color Bar</label>
                 </div>
                 <div class="check-wrap">
-                  <input
-                    type="checkbox"
-                    v-model="styling.reversescale"
-                    @change="updateData"
-                  />
+                  <input type="checkbox" v-model="styling.reversescale" @change="updateData" />
                   <label>Reverse Scale</label>
                 </div>
               </div>

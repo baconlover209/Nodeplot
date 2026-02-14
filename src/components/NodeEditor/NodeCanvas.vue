@@ -1,7 +1,6 @@
 <template>
   <div class="node-editor-canvas" ref="canvasRef" @mousedown.capture="onMouseDown" @mousemove.capture="onMouseMove"
-    @mouseup.capture="onMouseUp" @mouseup="onMouseUpBubble" @wheel.prevent="onWheel"
-    @contextmenu.prevent="onContextMenu">
+    @mouseup.capture="onMouseUp" @mouseup="onMouseUpBubble" @wheel="onWheel" @contextmenu.prevent="onContextMenu">
     <!-- Connections Layer (SVG) -->
     <svg class="connections-layer">
       <g :style="transformStyle">
@@ -108,6 +107,7 @@ import SaveNode from "./nodes/SaveNode.vue";
 import AdvancedTraceNode from "./nodes/AdvancedTraceNode.vue";
 import GeoJSONNode from "./nodes/GeoJSONNode.vue";
 import IndexNode from "./nodes/IndexNode.vue";
+import JSONExtractionNode from "./nodes/JSONExtractionNode.vue";
 import AddNodeMenu from "./AddNodeMenu.vue";
 
 registerNodeType("config", ConfigNode);
@@ -121,6 +121,7 @@ registerNodeType("save", SaveNode);
 registerNodeType("advancedTrace", AdvancedTraceNode);
 registerNodeType("geojson", GeoJSONNode);
 registerNodeType("index", IndexNode);
+registerNodeType("jsonExtraction", JSONExtractionNode);
 
 // --- State Access ---
 const nodes = computed(() => nodeEditorState.nodes);
@@ -249,6 +250,26 @@ function onMouseUpBubble() {
 }
 
 function onWheel(e: WheelEvent) {
+  // If Shift is NOT held, check if we are over a scrollable element
+  if (!e.shiftKey) {
+    let target = e.target as HTMLElement | null;
+    while (target && target !== canvasRef.value) {
+      if (!target) break;
+      const style = window.getComputedStyle(target);
+      const isScrollableY = (style.overflowY === 'auto' || style.overflowY === 'scroll') && target.scrollHeight > target.clientHeight;
+      const isScrollableX = (style.overflowX === 'auto' || style.overflowX === 'scroll') && target.scrollWidth > target.clientWidth;
+
+      if (isScrollableY || isScrollableX) {
+        // Let the default scroll behavior happen (scroll the box)
+        return;
+      }
+      target = target.parentElement;
+    }
+  }
+
+  // If we reach here (Shift is held OR not over a scrollable element), we zoom the canvas
+  e.preventDefault();
+
   const zoomSensitivity = 0.001;
   // Calculate new zoom
   let newZoom = zoom.value * (1 - e.deltaY * zoomSensitivity);
@@ -730,7 +751,7 @@ function createNodeAtPos(type: string, pos: { x: number; y: number }) {
     node.label = "Resource / URL";
     node.data = { manualUrl: "" };
     node.inputs = { url: null };
-    node.outputs = { output: null };
+    node.outputs = { output: null, width: null, height: null, fileName: null };
   } else if (type === "constant") {
     node.label = "Constant";
     node.data = { dataType: "raw", value: "" };
@@ -866,6 +887,11 @@ function createNodeAtPos(type: string, pos: { x: number; y: number }) {
     };
     node.inputs = { traces: null };
     node.outputs = { layout: null, traces: null };
+  } else if (type === "jsonExtraction") {
+    node.label = "JSON Extraction";
+    node.data = { freeze: false };
+    node.inputs = { json: null };
+    node.outputs = {};
   }
 
   addNode(node);

@@ -1,0 +1,51 @@
+scatter_x,scatter_y,bar_label,bar_val,pie_label,pie_val,city,lat,lon,pop,state_id,state_name,state_val,strip_x,strip_y,violin_y,generic_x,generic_y_base,sunburst_label,sunburst_parent,sunburst_val
+1,2,A,10,Product A,300,London,51.5074,-0.1278,8908081,AL,Alabama,45,A,1,1,0,0,Eve,,10
+2,3,B,20,Product B,500,Paris,48.8566,2.3522,2148271,AK,Alaska,10,A,2,2,1,1,Cain,Eve,14
+3,5,C,15,Product C,100,Berlin,52.52,13.405,3769495,AZ,Arizona,78,A,2,2,2,0,Seth,Eve,12
+4,4,D,25,,,Rome,41.9028,12.4964,2873000,AR,Arkansas,32,B,3,3,3,-1,Enos,Seth,10
+5,7,E,30,,,Madrid,40.4168,-3.7038,3223000,CA,California,95,B,3,3,4,0,Noam,Seth,2
+,,,,,,Tokyo,35.6762,139.6503,13960000,CO,Colorado,67,B,3,3,5,1,Abel,Eve,6
+,,,,,,New York,40.7128,-74.006,8336817,CT,Connecticut,58,A,4,4,6,0,Awan,Eve,6
+,,,,,,Sydney,-33.8688,151.2093,5312000,DE,Delaware,25,B,4,4,,,Enoch,Awan,4
+,,,,,,,,,,FL,Florida,88,A,5,5,,,Azura,Eve,4
+,,,,,,,,,,GA,Georgia,72,,,5,,,,,
+,,,,,,,,,,HI,Hawaii,15,,,5,,,,,
+,,,,,,,,,,ID,Idaho,44,,,5,,,,,
+,,,,,,,,,,IL,Illinois,70,,,6,,,,,
+,,,,,,,,,,IN,Indiana,55,,,6,,,,,
+,,,,,,,,,,IA,Iowa,40,,,7,,,,,
+,,,,,,,,,,KS,Kansas,38,,,,,,,,
+,,,,,,,,,,KY,Kentucky,48,,,,,,,,
+,,,,,,,,,,LA,Louisiana,42,,,,,,,,
+,,,,,,,,,,ME,Maine,22,,,,,,,,
+,,,,,,,,,,MD,Maryland,65,,,,,,,,
+,,,,,,,,,,MA,Massachusetts,80,,,,,,,,
+,,,,,,,,,,MI,Michigan,68,,,,,,,,
+,,,,,,,,,,MN,Minnesota,62,,,,,,,,
+,,,,,,,,,,MS,Mississippi,30,,,,,,,,
+,,,,,,,,,,MO,Missouri,52,,,,,,,,
+,,,,,,,,,,MT,Montana,20,,,,,,,,
+,,,,,,,,,,NE,Nebraska,35,,,,,,,,
+,,,,,,,,,,NV,Nevada,12,,,,,,,,
+,,,,,,,,,,NH,New Hampshire,28,,,,,,,,
+,,,,,,,,,,NJ,New Jersey,85,,,,,,,,
+,,,,,,,,,,NM,New Mexico,36,,,,,,,,
+,,,,,,,,,,NY,New York,92,,,,,,,,
+,,,,,,,,,,NC,North Carolina,74,,,,,,,,
+,,,,,,,,,,ND,North Dakota,18,,,,,,,,
+,,,,,,,,,,OH,Ohio,66,,,,,,,,
+,,,,,,,,,,OK,Oklahoma,46,,,,,,,,
+,,,,,,,,,,OR,Oregon,54,,,,,,,,
+,,,,,,,,,,PA,Pennsylvania,76,,,,,,,,
+,,,,,,,,,,RI,Rhode Island,24,,,,,,,,
+,,,,,,,,,,SC,South Carolina,50,,,,,,,,
+,,,,,,,,,,SD,South Dakota,16,,,,,,,,
+,,,,,,,,,,TN,Tennessee,56,,,,,,,,
+,,,,,,,,,,TX,Texas,82,,,,,,,,
+,,,,,,,,,,UT,Utah,49,,,,,,,,
+,,,,,,,,,,VT,Vermont,21,,,,,,,,
+,,,,,,,,,,VA,Virginia,71,,,,,,,,
+,,,,,,,,,,WA,Washington,64,,,,,,,,
+,,,,,,,,,,WV,West Virginia,29,,,,,,,,
+,,,,,,,,,,WI,Wisconsin,59,,,,,,,,
+,,,,,,,,,,WY,Wyoming,14,,,,,,,,

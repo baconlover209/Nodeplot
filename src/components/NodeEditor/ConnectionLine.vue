@@ -37,7 +37,12 @@ const lineColor = computed(() => {
 
   const val = props.value;
   if (typeof val === 'number') return '#00d2ff'; // Cyan
-  if (typeof val === 'string') return '#ffcc00'; // Yellow
+  if (typeof val === 'string') {
+    // Detect base64 images or common image URLs
+    const isImage = val.startsWith('data:image/') || /\.(jpg|jpeg|png|gif|webp|svg|bmp)($|\?)/i.test(val);
+    if (isImage) return '#ff00ff'; // Vibrant Magenta for Images
+    return '#ffcc00'; // Yellow
+  }
   if (typeof val === 'boolean') return '#44ff44'; // Green
   if (Array.isArray(val)) return '#ff8800'; // Orange for Arrays
   if (typeof val === 'object') return '#cc33ff'; // Purple

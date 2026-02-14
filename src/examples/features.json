@@ -1,6 +1,24 @@
 {
     "nodes": [
         {
+            "id": "node-data",
+            "type": "link",
+            "label": "Example Data",
+            "position": {
+                "x": 100,
+                "y": 400
+            },
+            "data": {
+                "manualUrl": "https://github.com/baconlover209/Nodeplot/blob/main/exampleData.csv"
+            },
+            "inputs": {
+                "url": null
+            },
+            "outputs": {
+                "output": null
+            }
+        },
+        {
             "id": "node-input",
             "type": "input",
             "label": "Amplitude Control",
@@ -24,36 +42,38 @@
         },
         {
             "id": "node-x",
-            "type": "constant",
+            "type": "isolateColumn",
             "label": "X Data",
             "position": {
-                "x": 100,
-                "y": 250
+                "x": 500,
+                "y": 100
             },
             "data": {
-                "dataType": "json",
-                "value": "[0, 1, 2, 3, 4, 5, 6]"
+                "columnIndex": 16
             },
-            "inputs": {},
+            "inputs": {
+                "csvData": null
+            },
             "outputs": {
-                "output": null
+                "data": null
             }
         },
         {
             "id": "node-y-base",
-            "type": "constant",
+            "type": "isolateColumn",
             "label": "Y Base",
             "position": {
-                "x": 100,
-                "y": 350
+                "x": 500,
+                "y": 300
             },
             "data": {
-                "dataType": "json",
-                "value": "[0, 1, 0, -1, 0, 1, 0]"
+                "columnIndex": 17
             },
-            "inputs": {},
+            "inputs": {
+                "csvData": null
+            },
             "outputs": {
-                "output": null
+                "data": null
             }
         },
         {
@@ -61,7 +81,7 @@
             "type": "math",
             "label": "Scale Y",
             "position": {
-                "x": 300,
+                "x": 800,
                 "y": 150
             },
             "data": {
@@ -80,8 +100,8 @@
             "type": "trace",
             "label": "Sine Wave",
             "position": {
-                "x": 500,
-                "y": 100
+                "x": 1100,
+                "y": 50
             },
             "data": {
                 "type": "scatter",
@@ -102,8 +122,8 @@
             "type": "trace",
             "label": "Bar Chart",
             "position": {
-                "x": 500,
-                "y": 300
+                "x": 1100,
+                "y": 350
             },
             "data": {
                 "type": "bar",
@@ -122,7 +142,7 @@
             "type": "joiner",
             "label": "Join Traces",
             "position": {
-                "x": 750,
+                "x": 1400,
                 "y": 200
             },
             "data": {},
@@ -139,8 +159,8 @@
             "type": "constant",
             "label": "Subplot Layout",
             "position": {
-                "x": 750,
-                "y": 350
+                "x": 1400,
+                "y": 450
             },
             "data": {
                 "dataType": "json",
@@ -156,118 +176,106 @@
             "type": "plotly",
             "label": "Dashboard",
             "position": {
-                "x": 1000,
-                "y": 200
+                "x": 1800,
+                "y": 250
             },
             "data": {},
             "inputs": {
                 "data": null,
                 "layout": null
             },
-            "outputs": {
-                "selectedPoint": null,
-                "hoverPoint": null
-            }
-        },
-        {
-            "id": "node-event-display",
-            "type": "display",
-            "label": "Event Data",
-            "position": {
-                "x": 1000,
-                "y": 400
-            },
-            "data": {
-                "value": "Click a point..."
-            },
-            "inputs": {
-                "value": null
-            },
             "outputs": {}
         }
     ],
     "connections": [
         {
-            "id": "conn-1",
+            "id": "c0",
+            "sourceNodeId": "node-data",
+            "sourcePort": "output",
+            "targetNodeId": "node-x",
+            "targetPort": "csvData"
+        },
+        {
+            "id": "c1",
+            "sourceNodeId": "node-data",
+            "sourcePort": "output",
+            "targetNodeId": "node-y-base",
+            "targetPort": "csvData"
+        },
+        {
+            "id": "c2",
             "sourceNodeId": "node-input",
             "sourcePort": "value",
             "targetNodeId": "node-math",
             "targetPort": "a"
         },
         {
-            "id": "conn-2",
+            "id": "c3",
             "sourceNodeId": "node-y-base",
-            "sourcePort": "output",
+            "sourcePort": "data",
             "targetNodeId": "node-math",
             "targetPort": "b"
         },
         {
-            "id": "conn-3",
+            "id": "c4",
             "sourceNodeId": "node-x",
-            "sourcePort": "output",
+            "sourcePort": "data",
             "targetNodeId": "node-trace-1",
             "targetPort": "x"
         },
         {
-            "id": "conn-4",
+            "id": "c5",
             "sourceNodeId": "node-math",
             "sourcePort": "result",
             "targetNodeId": "node-trace-1",
             "targetPort": "y"
         },
         {
-            "id": "conn-5",
+            "id": "c6",
             "sourceNodeId": "node-x",
-            "sourcePort": "output",
+            "sourcePort": "data",
             "targetNodeId": "node-trace-2",
             "targetPort": "x"
         },
         {
-            "id": "conn-6",
+            "id": "c7",
             "sourceNodeId": "node-input",
             "sourcePort": "value",
             "targetNodeId": "node-trace-2",
             "targetPort": "y"
         },
         {
-            "id": "conn-7",
+            "id": "c8",
             "sourceNodeId": "node-trace-1",
             "sourcePort": "trace",
             "targetNodeId": "node-joiner",
             "targetPort": "input0"
         },
         {
-            "id": "conn-8",
+            "id": "c9",
             "sourceNodeId": "node-trace-2",
             "sourcePort": "trace",
             "targetNodeId": "node-joiner",
             "targetPort": "input1"
         },
         {
-            "id": "conn-9",
+            "id": "c10",
             "sourceNodeId": "node-joiner",
             "sourcePort": "list",
             "targetNodeId": "node-plotly",
             "targetPort": "data"
         },
         {
-            "id": "conn-10",
+            "id": "c11",
             "sourceNodeId": "node-layout",
             "sourcePort": "output",
             "targetNodeId": "node-plotly",
             "targetPort": "layout"
-        },
-        {
-            "id": "conn-11",
-            "sourceNodeId": "node-plotly",
-            "sourcePort": "selectedPoint",
-            "targetNodeId": "node-event-display",
-            "targetPort": "value"
         }
     ],
-    "zoom": 0.8,
+    "zoom": 0.6,
     "pan": {
-        "x": 0,
-        "y": 0
+        "x": 50,
+        "y": 50
     }
 }

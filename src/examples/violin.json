@@ -1,20 +1,39 @@
 {
     "nodes": [
         {
-            "id": "node-values",
-            "type": "constant",
-            "label": "Values",
+            "id": "node-data",
+            "type": "link",
+            "label": "Example Data",
             "position": {
                 "x": 100,
-                "y": 100
+                "y": 250
             },
             "data": {
-                "dataType": "json",
-                "value": "[1, 2, 2, 3, 3, 3, 4, 4, 5, 5, 5, 5, 6, 6, 7]"
+                "manualUrl": "https://github.com/baconlover209/Nodeplot/blob/main/exampleData.csv"
             },
-            "inputs": {},
+            "inputs": {
+                "url": null
+            },
             "outputs": {
                 "output": null
+            }
+        },
+        {
+            "id": "node-values",
+            "type": "isolateColumn",
+            "label": "Values",
+            "position": {
+                "x": 600,
+                "y": 250
+            },
+            "data": {
+                "columnIndex": 15
+            },
+            "inputs": {
+                "csvData": null
+            },
+            "outputs": {
+                "data": null
             }
         },
         {
@@ -22,21 +41,15 @@
             "type": "trace",
             "label": "Violin Trace",
             "position": {
-                "x": 400,
-                "y": 200
+                "x": 1100,
+                "y": 250
             },
             "data": {
                 "type": "violin",
                 "name": "Violin Example"
             },
             "inputs": {
-                "y": null,
-                "x": null,
-                "text": null,
-                "marker.color": null,
-                "side": null,
-                "box": null,
-                "meanline": null
+                "y": null
             },
             "outputs": {
                 "trace": null
@@ -47,39 +60,43 @@
             "type": "plotly",
             "label": "Plotly Chart",
             "position": {
-                "x": 700,
-                "y": 200
+                "x": 1600,
+                "y": 250
             },
             "data": {},
             "inputs": {
                 "data": null,
                 "layout": null
             },
-            "outputs": {
-                "selectedPoint": null,
-                "hoverPoint": null
-            }
+            "outputs": {}
         }
     ],
     "connections": [
         {
-            "id": "conn-1",
-            "sourceNodeId": "node-values",
+            "id": "c1",
+            "sourceNodeId": "node-data",
             "sourcePort": "output",
+            "targetNodeId": "node-values",
+            "targetPort": "csvData"
+        },
+        {
+            "id": "c2",
+            "sourceNodeId": "node-values",
+            "sourcePort": "data",
             "targetNodeId": "node-trace",
             "targetPort": "y"
         },
         {
-            "id": "conn-3",
+            "id": "c3",
             "sourceNodeId": "node-trace",
             "sourcePort": "trace",
             "targetNodeId": "node-plotly",
             "targetPort": "data"
         }
     ],
-    "zoom": 1,
+    "zoom": 0.8,
     "pan": {
-        "x": 0,
-        "y": 0
+        "x": 50,
+        "y": 50
     }
 }

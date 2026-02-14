@@ -1,12 +1,6 @@
 <template>
-  <BaseNode
-    :node="node"
-    :selected="selected"
-    class="layout-node"
-    @connect-start="$emit('connect-start', $event)"
-    @connect-end="$emit('connect-end', $event)"
-    @socket-click="$emit('socket-click', $event)"
-  >
+  <BaseNode :node="node" :selected="selected" class="layout-node" @connect-start="$emit('connect-start', $event)"
+    @connect-end="$emit('connect-end', $event)" @socket-click="$emit('socket-click', $event)">
     <div class="layout-node-content">
       <div class="layout-header">
         <div class="header-main">
@@ -14,58 +8,35 @@
           <span>Layout Master</span>
         </div>
         <div class="tabs">
-          <div
-            v-for="tab in tabs"
-            :key="tab.id"
-            class="tab"
-            :class="{ active: activeTab === tab.id }"
-            @click="activeTab = tab.id"
-          >
+          <div v-for="tab in tabs" :key="tab.id" class="tab" :class="{ active: activeTab === tab.id }"
+            @click="activeTab = tab.id">
             {{ tab.label }}
           </div>
         </div>
       </div>
 
-      <div class="tab-content" @wheel.stop>
+      <div class="tab-content">
         <!-- General Tab -->
         <div v-if="activeTab === 'general'" class="config-group">
           <div class="section-title">Global Styles</div>
           <div class="control-row">
             <div class="input-wrap">
               <label>Title Text</label>
-              <input
-                type="text"
-                v-model="config.title_text"
-                @input="updateData"
-                placeholder="Chart Title"
-              />
+              <input type="text" v-model="config.title_text" @input="updateData" placeholder="Chart Title" />
             </div>
           </div>
           <div class="control-row">
             <div class="input-wrap">
               <label>Font Family</label>
-              <input
-                type="text"
-                v-model="config.font_family"
-                @input="updateData"
-                placeholder="Inter, sans-serif"
-              />
+              <input type="text" v-model="config.font_family" @input="updateData" placeholder="Inter, sans-serif" />
             </div>
             <div class="input-wrap" style="width: 70px">
               <label>Size</label>
-              <input
-                type="number"
-                v-model.number="config.font_size"
-                @input="updateData"
-              />
+              <input type="number" v-model.number="config.font_size" @input="updateData" />
             </div>
             <div class="input-wrap" style="width: 60px">
               <label>Color</label>
-              <input
-                type="color"
-                v-model="config.font_color"
-                @input="updateData"
-              />
+              <input type="color" v-model="config.font_color" @input="updateData" />
             </div>
           </div>
 
@@ -73,53 +44,29 @@
           <div class="control-row">
             <div class="input-wrap">
               <label>Paper (Outer)</label>
-              <input
-                type="color"
-                v-model="config.paper_bgcolor"
-                @input="updateData"
-              />
+              <input type="color" v-model="config.paper_bgcolor" @input="updateData" />
             </div>
             <div class="input-wrap">
               <label>Plot (Inner)</label>
-              <input
-                type="color"
-                v-model="config.plot_bgcolor"
-                @input="updateData"
-              />
+              <input type="color" v-model="config.plot_bgcolor" @input="updateData" />
             </div>
           </div>
           <div class="control-grid-4">
             <div class="input-wrap">
               <label>Top</label>
-              <input
-                type="number"
-                v-model.number="config.margin_t"
-                @input="updateData"
-              />
+              <input type="number" v-model.number="config.margin_t" @input="updateData" />
             </div>
             <div class="input-wrap">
               <label>Bottom</label>
-              <input
-                type="number"
-                v-model.number="config.margin_b"
-                @input="updateData"
-              />
+              <input type="number" v-model.number="config.margin_b" @input="updateData" />
             </div>
             <div class="input-wrap">
               <label>Left</label>
-              <input
-                type="number"
-                v-model.number="config.margin_l"
-                @input="updateData"
-              />
+              <input type="number" v-model.number="config.margin_l" @input="updateData" />
             </div>
             <div class="input-wrap">
               <label>Right</label>
-              <input
-                type="number"
-                v-model.number="config.margin_r"
-                @input="updateData"
-              />
+              <input type="number" v-model.number="config.margin_r" @input="updateData" />
             </div>
           </div>
         </div>
@@ -129,11 +76,7 @@
           <div class="section-title">Subplot Grid</div>
           <div class="control-row flex-center">
             <div class="check-wrap">
-              <input
-                type="checkbox"
-                v-model="config.use_grid"
-                @change="updateData"
-              />
+              <input type="checkbox" v-model="config.use_grid" @change="updateData" />
               <label>Enable Grid Layout</label>
             </div>
           </div>
@@ -142,23 +85,11 @@
             <div class="control-row">
               <div class="input-wrap">
                 <label>Rows</label>
-                <input
-                  type="number"
-                  v-model.number="config.grid_rows"
-                  min="1"
-                  max="10"
-                  @input="updateData"
-                />
+                <input type="number" v-model.number="config.grid_rows" min="1" max="10" @input="updateData" />
               </div>
               <div class="input-wrap">
                 <label>Cols</label>
-                <input
-                  type="number"
-                  v-model.number="config.grid_cols"
-                  min="1"
-                  max="10"
-                  @input="updateData"
-                />
+                <input type="number" v-model.number="config.grid_cols" min="1" max="10" @input="updateData" />
               </div>
             </div>
             <div class="control-row">
@@ -173,36 +104,20 @@
             <div class="control-row">
               <div class="input-wrap">
                 <label>H-Gap</label>
-                <input
-                  type="number"
-                  v-model.number="config.grid_xgap"
-                  step="0.01"
-                  min="0"
-                  max="1"
-                  @input="updateData"
-                />
+                <input type="number" v-model.number="config.grid_xgap" step="0.01" min="0" max="1"
+                  @input="updateData" />
               </div>
               <div class="input-wrap">
                 <label>V-Gap</label>
-                <input
-                  type="number"
-                  v-model.number="config.grid_ygap"
-                  step="0.01"
-                  min="0"
-                  max="1"
-                  @input="updateData"
-                />
+                <input type="number" v-model.number="config.grid_ygap" step="0.01" min="0" max="1"
+                  @input="updateData" />
               </div>
             </div>
           </template>
 
           <div class="section-title">Specific Subplots</div>
           <div class="subplot-list">
-            <div
-              v-for="(sub, idx) in config.subplots"
-              :key="idx"
-              class="subplot-item"
-            >
+            <div v-for="(sub, idx) in config.subplots" :key="idx" class="subplot-item">
               <div class="item-header">
                 <select v-model="sub.type" @change="updateData">
                   <option value="scene">3D Scene</option>
@@ -211,48 +126,22 @@
                   <option value="geo">Geo</option>
                   <option value="ternary">Ternary</option>
                 </select>
-                <input
-                  type="text"
-                  v-model="sub.id"
-                  placeholder="ID (e.g. 2)"
-                  style="width: 50px"
-                  @input="updateData"
-                />
+                <input type="text" v-model="sub.id" placeholder="ID (e.g. 2)" style="width: 50px" @input="updateData" />
                 <button class="remove-btn" @click="removeSubplot(idx)">
                   ×
                 </button>
               </div>
               <div class="domain-row">
                 <label>Domain X:</label>
-                <input
-                  type="number"
-                  v-model.number="sub.domain_start_x"
-                  step="0.1"
-                  @input="updateData"
-                />
+                <input type="number" v-model.number="sub.domain_start_x" step="0.1" @input="updateData" />
                 <span>-</span>
-                <input
-                  type="number"
-                  v-model.number="sub.domain_end_x"
-                  step="0.1"
-                  @input="updateData"
-                />
+                <input type="number" v-model.number="sub.domain_end_x" step="0.1" @input="updateData" />
               </div>
               <div class="domain-row">
                 <label>Domain Y:</label>
-                <input
-                  type="number"
-                  v-model.number="sub.domain_start_y"
-                  step="0.1"
-                  @input="updateData"
-                />
+                <input type="number" v-model.number="sub.domain_start_y" step="0.1" @input="updateData" />
                 <span>-</span>
-                <input
-                  type="number"
-                  v-model.number="sub.domain_end_y"
-                  step="0.1"
-                  @input="updateData"
-                />
+                <input type="number" v-model.number="sub.domain_end_y" step="0.1" @input="updateData" />
               </div>
             </div>
             <button class="add-btn" @click="addSubplot">
@@ -265,21 +154,12 @@
         <div v-if="activeTab === 'axes'" class="config-group">
           <div class="section-title">Axis Configuration</div>
           <div class="axis-list">
-            <div
-              v-for="(axis, idx) in config.axes"
-              :key="idx"
-              class="axis-item"
-            >
+            <div v-for="(axis, idx) in config.axes" :key="idx" class="axis-item">
               <div class="item-header">
                 <div class="axis-type-badge" :class="axis.type">
                   {{ axis.type.toUpperCase() }}{{ axis.id || "1" }}
                 </div>
-                <input
-                  type="text"
-                  v-model="axis.title"
-                  placeholder="Axis Title"
-                  @input="updateData"
-                />
+                <input type="text" v-model="axis.title" placeholder="Axis Title" @input="updateData" />
                 <button class="remove-btn" @click="removeAxis(idx)">×</button>
               </div>
 
@@ -311,28 +191,15 @@
               <div class="control-row" v-if="axis.id">
                 <div class="input-wrap">
                   <label>Overlaying</label>
-                  <input
-                    type="text"
-                    v-model="axis.overlaying"
-                    placeholder="e.g. y"
-                    @input="updateData"
-                  />
+                  <input type="text" v-model="axis.overlaying" placeholder="e.g. y" @input="updateData" />
                 </div>
                 <div class="input-wrap">
                   <label>Anchor</label>
-                  <input
-                    type="text"
-                    v-model="axis.anchor"
-                    placeholder="e.g. x"
-                    @input="updateData"
-                  />
+                  <input type="text" v-model="axis.anchor" placeholder="e.g. x" @input="updateData" />
                 </div>
               </div>
 
-              <div
-                class="domain-toggle"
-                @click="axis.showDomain = !axis.showDomain"
-              >
+              <div class="domain-toggle" @click="axis.showDomain = !axis.showDomain">
                 {{
                   axis.showDomain ? "▼ Hide Domain/Pos" : "▶ Show Domain/Pos"
                 }}
@@ -341,28 +208,13 @@
               <div v-if="axis.showDomain" class="domain-box">
                 <div class="domain-row">
                   <label>Domain:</label>
-                  <input
-                    type="number"
-                    v-model.number="axis.domain_start"
-                    step="0.1"
-                    @input="updateData"
-                  />
+                  <input type="number" v-model.number="axis.domain_start" step="0.1" @input="updateData" />
                   <span>-</span>
-                  <input
-                    type="number"
-                    v-model.number="axis.domain_end"
-                    step="0.1"
-                    @input="updateData"
-                  />
+                  <input type="number" v-model.number="axis.domain_end" step="0.1" @input="updateData" />
                 </div>
                 <div class="domain-row" v-if="axis.id">
                   <label>Position:</label>
-                  <input
-                    type="number"
-                    v-model.number="axis.position"
-                    step="0.05"
-                    @input="updateData"
-                  />
+                  <input type="number" v-model.number="axis.position" step="0.05" @input="updateData" />
                 </div>
               </div>
             </div>
@@ -381,11 +233,7 @@
             Connect traces to see mapping options
           </div>
           <div class="trace-mapping-list" v-else>
-            <div
-              v-for="(trace, idx) in inputTraces"
-              :key="idx"
-              class="mapping-item"
-            >
+            <div v-for="(trace, idx) in inputTraces" :key="idx" class="mapping-item">
               <div class="mapping-trace-info">
                 <span class="trace-index">#{{ idx + 1 }}</span>
                 <span class="trace-name">{{
@@ -394,19 +242,14 @@
               </div>
 
               <div class="mapping-controls">
-                <template
-                  v-if="
-                    ['scatter', 'bar', 'box', 'violin', 'histogram'].includes(
-                      trace.type
-                    )
-                  "
-                >
+                <template v-if="
+                  ['scatter', 'bar', 'box', 'violin', 'histogram'].includes(
+                    trace.type
+                  )
+                ">
                   <div class="input-wrap">
                     <label>X Axis</label>
-                    <select
-                      v-model="getTraceMapping(idx).xaxis"
-                      @change="updateData"
-                    >
+                    <select v-model="getTraceMapping(idx).xaxis" @change="updateData">
                       <option value="">Default (X1)</option>
                       <option v-for="id in axisIds.x" :key="id" :value="id">
                         X{{ id || "1" }}
@@ -415,10 +258,7 @@
                   </div>
                   <div class="input-wrap">
                     <label>Y Axis</label>
-                    <select
-                      v-model="getTraceMapping(idx).yaxis"
-                      @change="updateData"
-                    >
+                    <select v-model="getTraceMapping(idx).yaxis" @change="updateData">
                       <option value="">Default (Y1)</option>
                       <option v-for="id in axisIds.y" :key="id" :value="id">
                         Y{{ id || "1" }}
@@ -427,25 +267,16 @@
                   </div>
                 </template>
 
-                <template
-                  v-else-if="
-                    trace.type === 'scatter3d' ||
-                    trace.type === 'surface' ||
-                    trace.type === 'mesh3d'
-                  "
-                >
+                <template v-else-if="
+                  trace.type === 'scatter3d' ||
+                  trace.type === 'surface' ||
+                  trace.type === 'mesh3d'
+                ">
                   <div class="input-wrap">
                     <label>3D Scene</label>
-                    <select
-                      v-model="getTraceMapping(idx).scene"
-                      @change="updateData"
-                    >
+                    <select v-model="getTraceMapping(idx).scene" @change="updateData">
                       <option value="">Default (Scene1)</option>
-                      <option
-                        v-for="id in subplotIds('scene')"
-                        :key="id"
-                        :value="id"
-                      >
+                      <option v-for="id in subplotIds('scene')" :key="id" :value="id">
                         Scene{{ id || "1" }}
                       </option>
                     </select>
@@ -455,16 +286,9 @@
                 <template v-else-if="trace.type.includes('mapbox')">
                   <div class="input-wrap">
                     <label>Mapbox</label>
-                    <select
-                      v-model="getTraceMapping(idx).mapbox"
-                      @change="updateData"
-                    >
+                    <select v-model="getTraceMapping(idx).mapbox" @change="updateData">
                       <option value="">Default (Mapbox1)</option>
-                      <option
-                        v-for="id in subplotIds('mapbox')"
-                        :key="id"
-                        :value="id"
-                      >
+                      <option v-for="id in subplotIds('mapbox')" :key="id" :value="id">
                         Mapbox{{ id || "1" }}
                       </option>
                     </select>
@@ -474,16 +298,9 @@
                 <template v-else-if="trace.type.includes('geo')">
                   <div class="input-wrap">
                     <label>Geo</label>
-                    <select
-                      v-model="getTraceMapping(idx).geo"
-                      @change="updateData"
-                    >
+                    <select v-model="getTraceMapping(idx).geo" @change="updateData">
                       <option value="">Default (Geo1)</option>
-                      <option
-                        v-for="id in subplotIds('geo')"
-                        :key="id"
-                        :value="id"
-                      >
+                      <option v-for="id in subplotIds('geo')" :key="id" :value="id">
                         Geo{{ id || "1" }}
                       </option>
                     </select>
@@ -503,11 +320,7 @@
           <div class="section-title">Legend Settings</div>
           <div class="control-row">
             <div class="check-wrap">
-              <input
-                type="checkbox"
-                v-model="config.showlegend"
-                @change="updateData"
-              />
+              <input type="checkbox" v-model="config.showlegend" @change="updateData" />
               <label>Show Legend</label>
             </div>
           </div>
@@ -526,21 +339,11 @@
           <div class="control-grid-2">
             <div class="input-wrap">
               <label>X Position</label>
-              <input
-                type="number"
-                v-model.number="config.legend_x"
-                step="0.05"
-                @input="updateData"
-              />
+              <input type="number" v-model.number="config.legend_x" step="0.05" @input="updateData" />
             </div>
             <div class="input-wrap">
               <label>Y Position</label>
-              <input
-                type="number"
-                v-model.number="config.legend_y"
-                step="0.05"
-                @input="updateData"
-              />
+              <input type="number" v-model.number="config.legend_y" step="0.05" @input="updateData" />
             </div>
           </div>
           <div class="control-grid-2">
@@ -568,27 +371,15 @@
           <div class="control-row">
             <div class="input-wrap">
               <label>BG Color</label>
-              <input
-                type="color"
-                v-model="config.legend_bgcolor"
-                @input="updateData"
-              />
+              <input type="color" v-model="config.legend_bgcolor" @input="updateData" />
             </div>
             <div class="input-wrap">
               <label>Border Color</label>
-              <input
-                type="color"
-                v-model="config.legend_bordercolor"
-                @input="updateData"
-              />
+              <input type="color" v-model="config.legend_bordercolor" @input="updateData" />
             </div>
             <div class="input-wrap" style="width: 60px">
               <label>Width</label>
-              <input
-                type="number"
-                v-model.number="config.legend_borderwidth"
-                @input="updateData"
-              />
+              <input type="number" v-model.number="config.legend_borderwidth" @input="updateData" />
             </div>
           </div>
         </div>
@@ -597,26 +388,16 @@
         <div v-if="activeTab === 'help'" class="config-group">
           <div class="section-title">Documentation & Help</div>
           <div class="help-accordion">
-            <div
-              v-for="section in helpSections"
-              :key="section.id"
-              class="help-section"
-              :class="{ active: expandedHelp === section.id }"
-            >
-              <div
-                class="help-header"
-                @click="
-                  expandedHelp = expandedHelp === section.id ? '' : section.id
-                "
-              >
+            <div v-for="section in helpSections" :key="section.id" class="help-section"
+              :class="{ active: expandedHelp === section.id }">
+              <div class="help-header" @click="
+                expandedHelp = expandedHelp === section.id ? '' : section.id
+                ">
                 <span>{{ section.title }}</span>
-                <div
-                  :class="
-                    expandedHelp === section.id
-                      ? 'i-mdi-chevron-up'
-                      : 'i-mdi-chevron-down'
-                  "
-                ></div>
+                <div :class="expandedHelp === section.id
+                  ? 'i-mdi-chevron-up'
+                  : 'i-mdi-chevron-down'
+                  "></div>
               </div>
               <div v-if="expandedHelp === section.id" class="help-body">
                 <div class="help-text" v-html="section.content"></div>
@@ -639,7 +420,7 @@ import BaseNode from "../BaseNode.vue";
 import {
   type NodeDefinition,
   triggerGraphUpdate,
-  getNodeValues,
+  getInputValueLive
 } from "../nodeEditorState";
 
 const props = defineProps<{
@@ -742,10 +523,10 @@ const config = reactive({
 });
 
 const inputTraces = computed(() => {
-  const values = getNodeValues.value[props.node.id];
-  const traces = values?.["traces"];
-  if (!traces) return [];
-  return Array.isArray(traces) ? traces : [traces];
+  // Use getInputValueLive to look at the input socket directly
+  const rawTraces = getInputValueLive(props.node.id, 'traces');
+  if (!rawTraces) return [];
+  return Array.isArray(rawTraces) ? rawTraces : [rawTraces];
 });
 
 const traceCount = computed(() => inputTraces.value.length);
@@ -758,6 +539,7 @@ onMounted(() => {
   // Initialize sockets
   if (!props.node.inputs["traces"]) props.node.inputs["traces"] = null;
   if (!props.node.outputs["layout"]) props.node.outputs["layout"] = null;
+  if (!props.node.outputs["traces"]) props.node.outputs["traces"] = null;
 
   updateData();
 });

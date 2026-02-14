@@ -11,6 +11,11 @@
       <input v-if="isEditing" ref="titleInputRef" v-model="editTitle" @blur="saveTitle" @keyup.enter="saveTitle"
         @mousedown.stop class="node-title-input" />
       <span v-else @dblclick.stop="startEditing" class="title-text">{{ node.label }}</span>
+
+      <div class="header-right-slot">
+        <slot name="header-right"></slot>
+      </div>
+
       <div v-if="error" class="error-indicator" :title="errorMessage">
         !
       </div>
@@ -264,7 +269,12 @@ const errorMessage = computed(() => {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  margin-right: 20px;
+}
+
+.header-right-slot {
+  display: flex;
+  align-items: center;
+  margin-right: 8px;
 }
 
 .error-indicator {

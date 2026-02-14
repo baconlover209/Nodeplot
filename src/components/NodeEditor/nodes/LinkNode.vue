@@ -1,11 +1,17 @@
 <template>
     <BaseNode :node="node" :selected="selected" @connect-start="$emit('connect-start', $event)"
         @connect-end="$emit('connect-end', $event)" @socket-click="$emit('socket-click', $event)">
-        <div class="fetch-node-content">
+        <div class="fetch-node-content" @dragover.prevent @drop.prevent="handleDrop">
             <div class="input-group" v-if="!isUrlConnected">
-                <label>URL</label>
-                <input v-model="node.data.manualUrl" placeholder="https://..." class="text-input" @mousedown.stop
-                    @input="onUpdate" />
+                <label>URL / File</label>
+                <div class="input-with-button">
+                    <input v-model="node.data.manualUrl" placeholder="https://..." class="text-input" @mousedown.stop
+                        @input="onUpdate" />
+                    <button class="upload-btn" @click="triggerFileInput" title="Upload File">
+                        <div class="i-mdi-upload"></div>
+                    </button>
+                </div>
+                <input type="file" ref="fileInput" class="hidden" @change="handleFileChange" />
             </div>
 
             <div class="status-indicator" :class="status">
@@ -25,6 +31,10 @@
                 <div class="info-row" v-if="Array.isArray(node.data.fetchedContent)">
                     <span class="label">Rows:</span>
                     <span class="value">{{ node.data.fetchedContent.length }}</span>
+                </div>
+                <div class="info-row" v-else-if="typeof node.data.fetchedContent === 'string'">
+                    <span class="label">Size:</span>
+                    <span class="value">{{ Math.round(node.data.fetchedContent.length / 1024) }} KB</span>
                 </div>
             </div>
         </div>
@@ -63,6 +73,7 @@ const currentUrl = computed(() => {
 
 const status = ref<'idle' | 'loading' | 'success' | 'error'>('idle');
 const errorMsg = ref('');
+const fileInput = ref<HTMLInputElement | null>(null);
 
 const statusLabel = computed(() => {
     switch (status.value) {
@@ -73,6 +84,86 @@ const statusLabel = computed(() => {
     }
 });
 
+function triggerFileInput() {
+    fileInput.value?.click();
+}
+
+function handleFileChange(e: Event) {
+    const file = (e.target as HTMLInputElement).files?.[0];
+    if (file) processFile(file);
+}
+
+function handleDrop(e: DragEvent) {
+    const file = e.dataTransfer?.files?.[0];
+    if (file) processFile(file);
+}
+
+function processFile(file: File) {
+    status.value = 'loading';
+    const reader = new FileReader();
+    props.node.data.manualUrl = `file://${file.name}`;
+    props.node.data.contentType = file.type;
+
+    reader.onload = (e) => {
+        const content = e.target?.result;
+        if (file.type.startsWith('image/')) {
+            props.node.data.fetchedContent = content;
+            // Measure image dimensions
+            const img = new Image();
+            img.onload = () => {
+                props.node.data.width = img.width;
+                props.node.data.height = img.height;
+                status.value = 'success';
+                triggerGraphUpdate();
+            };
+            img.src = content as string;
+        } else if (typeof content === 'string') {
+            if (file.type.includes('csv') || file.name.endsWith('.csv')) {
+                Papa.parse(content, {
+                    header: false,
+                    dynamicTyping: true,
+                    skipEmptyLines: true,
+                    complete: (results) => {
+                        props.node.data.fetchedContent = results.data;
+                        status.value = 'success';
+                        triggerGraphUpdate(true);
+                    },
+                    error: () => {
+                        errorMsg.value = "CSV Parse Error";
+                        status.value = 'error';
+                        triggerGraphUpdate(true);
+                    }
+                });
+            } else if (file.type.includes('json') || file.name.endsWith('.json')) {
+                try {
+                    props.node.data.fetchedContent = JSON.parse(content);
+                    status.value = 'success';
+                } catch (e) {
+                    errorMsg.value = "JSON Parse Error";
+                    status.value = 'error';
+                }
+                triggerGraphUpdate();
+            } else {
+                props.node.data.fetchedContent = content;
+                status.value = 'success';
+                triggerGraphUpdate();
+            }
+        }
+    };
+
+    reader.onerror = () => {
+        errorMsg.value = "File Read Error";
+        status.value = 'error';
+        triggerGraphUpdate();
+    };
+
+    if (file.type.startsWith('image/')) {
+        reader.readAsDataURL(file);
+    } else {
+        reader.readAsText(file);
+    }
+}
+
 async function fetchData(url: string) {
     if (!url) {
         status.value = 'idle';
@@ -81,14 +172,43 @@ async function fetchData(url: string) {
         return;
     }
 
+    if (url.startsWith('file://')) return; // Handled by local processFile
+
     status.value = 'loading';
     try {
+        let fetchUrl = url;
+        // Handle GitHub blob URLs by converting them to raw URLs
+        if (url.includes('github.com') && url.includes('/blob/')) {
+            fetchUrl = url.replace('github.com', 'raw.githubusercontent.com').replace('/blob/', '/');
+        }
+
         // Simple proxy check or just direct fetch
-        const response = await fetch(url);
+        const response = await fetch(fetchUrl);
         if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
 
         const contentType = response.headers.get('content-type') || '';
         props.node.data.contentType = contentType;
+
+        if (contentType.startsWith('image/')) {
+            const blob = await response.blob();
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                const content = reader.result;
+                props.node.data.fetchedContent = content;
+
+                // Measure image dimensions
+                const img = new Image();
+                img.onload = () => {
+                    props.node.data.width = img.width;
+                    props.node.data.height = img.height;
+                    status.value = 'success';
+                    triggerGraphUpdate();
+                };
+                img.src = content as string;
+            };
+            reader.readAsDataURL(blob);
+            return;
+        }
 
         const text = await response.text();
 
@@ -165,17 +285,47 @@ label {
 }
 
 .text-input {
+    flex: 1;
     background: #333;
     border: 1px solid #444;
     color: #fff;
     padding: 4px 8px;
-    border-radius: 4px;
+    border-radius: 4px 0 0 4px;
     font-size: 11px;
+    min-width: 0;
 }
 
 .text-input:focus {
     border-color: #00d2ff;
     outline: none;
+}
+
+.input-with-button {
+    display: flex;
+    width: 100%;
+}
+
+.upload-btn {
+    background: #444;
+    border: 1px solid #555;
+    border-left: none;
+    color: #aaa;
+    padding: 0 8px;
+    border-radius: 0 4px 4px 0;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+}
+
+.upload-btn:hover {
+    background: #555;
+    color: #fff;
+}
+
+.hidden {
+    display: none;
 }
 
 .status-indicator {

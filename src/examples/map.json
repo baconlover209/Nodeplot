@@ -1,80 +1,21 @@
 {
     "nodes": [
         {
-            "id": "node-cities-csv",
-            "type": "csvInput",
-            "label": "World Cities",
+            "id": "node-data",
+            "type": "link",
+            "label": "Example Data",
             "position": {
                 "x": 100,
-                "y": 100
+                "y": 300
             },
             "data": {
-                "fileName": "world_cities.csv",
-                "csvData": [
-                    [
-                        "city",
-                        "lat",
-                        "lon",
-                        "pop"
-                    ],
-                    [
-                        "London",
-                        51.5074,
-                        -0.1278,
-                        8908081
-                    ],
-                    [
-                        "Paris",
-                        48.8566,
-                        2.3522,
-                        2148271
-                    ],
-                    [
-                        "Berlin",
-                        52.5200,
-                        13.4050,
-                        3769495
-                    ],
-                    [
-                        "Rome",
-                        41.9028,
-                        12.4964,
-                        2873000
-                    ],
-                    [
-                        "Madrid",
-                        40.4168,
-                        -3.7038,
-                        3223000
-                    ],
-                    [
-                        "Tokyo",
-                        35.6762,
-                        139.6503,
-                        13960000
-                    ],
-                    [
-                        "New York",
-                        40.7128,
-                        -74.0060,
-                        8336817
-                    ],
-                    [
-                        "Sydney",
-                        -33.8688,
-                        151.2093,
-                        5312000
-                    ]
-                ],
-                "width": 4,
-                "height": 9
+                "manualUrl": "https://github.com/baconlover209/Nodeplot/blob/main/exampleData.csv"
             },
-            "inputs": {},
+            "inputs": {
+                "url": null
+            },
             "outputs": {
-                "data": null,
-                "width": null,
-                "height": null,
-                "fileName": null
+                "output": null
             }
         },
         {
@@ -82,17 +23,16 @@
             "type": "isolateColumn",
             "label": "Latitude",
             "position": {
-                "x": 400,
-                "y": 0
+                "x": 600,
+                "y": 50
             },
             "data": {
-                "columnIndex": 1
+                "columnIndex": 7
             },
             "inputs": {
                 "csvData": null
             },
             "outputs": {
-                "name": null,
                 "data": null
             }
         },
@@ -101,17 +41,16 @@
             "type": "isolateColumn",
             "label": "Longitude",
             "position": {
-                "x": 400,
-                "y": 120
+                "x": 600,
+                "y": 250
             },
             "data": {
-                "columnIndex": 2
+                "columnIndex": 8
             },
             "inputs": {
                 "csvData": null
             },
             "outputs": {
-                "name": null,
                 "data": null
             }
         },
@@ -120,17 +59,16 @@
             "type": "isolateColumn",
             "label": "City Name",
             "position": {
-                "x": 400,
-                "y": 240
+                "x": 600,
+                "y": 450
             },
             "data": {
-                "columnIndex": 0
+                "columnIndex": 6
             },
             "inputs": {
                 "csvData": null
             },
             "outputs": {
-                "name": null,
                 "data": null
             }
         },
@@ -139,8 +77,8 @@
             "type": "trace",
             "label": "City Map",
             "position": {
-                "x": 700,
-                "y": 150
+                "x": 1100,
+                "y": 200
             },
             "data": {
                 "type": "scattergeo",
@@ -151,9 +89,7 @@
             "inputs": {
                 "lon": null,
                 "lat": null,
-                "text": null,
-                "marker.size": null,
-                "config": null
+                "text": null
             },
             "outputs": {
                 "trace": null
@@ -164,8 +100,8 @@
             "type": "constant",
             "label": "Map Layout",
             "position": {
-                "x": 700,
-                "y": 400
+                "x": 1100,
+                "y": 500
             },
             "data": {
                 "value": "{\n  \"title\": \"Global Cities Map\",\n  \"geo\": {\n    \"showframe\": false,\n    \"showcoastlines\": true,\n    \"projection\": {\n      \"type\": \"equirectangular\"\n    },\n    \"landcolor\": \"rgb(217, 217, 217)\",\n    \"subunitcolor\": \"rgb(255, 255, 255)\",\n    \"countrycolor\": \"rgb(255, 255, 255)\",\n    \"countrywidth\": 0.5,\n    \"subunitwidth\": 0.5\n  }\n}"
@@ -180,79 +116,76 @@
             "type": "plotly",
             "label": "Plotly Chart",
             "position": {
-                "x": 1000,
-                "y": 150
+                "x": 1600,
+                "y": 300
             },
             "data": {},
             "inputs": {
                 "data": null,
                 "layout": null
             },
-            "outputs": {
-                "selectedPoint": null,
-                "hoverPoint": null
-            }
+            "outputs": {}
         }
     ],
     "connections": [
         {
             "id": "c1",
-            "sourceNodeId": "node-cities-csv",
-            "sourcePort": "data",
+            "sourceNodeId": "node-data",
+            "sourcePort": "output",
             "targetNodeId": "node-iso-lat",
             "targetPort": "csvData"
         },
         {
             "id": "c2",
-            "sourceNodeId": "node-cities-csv",
-            "sourcePort": "data",
+            "sourceNodeId": "node-data",
+            "sourcePort": "output",
             "targetNodeId": "node-iso-lon",
             "targetPort": "csvData"
         },
         {
             "id": "c3",
-            "sourceNodeId": "node-cities-csv",
-            "sourcePort": "data",
+            "sourceNodeId": "node-data",
+            "sourcePort": "output",
             "targetNodeId": "node-iso-city",
             "targetPort": "csvData"
         },
         {
-            "id": "c5",
+            "id": "c4",
             "sourceNodeId": "node-iso-lat",
             "sourcePort": "data",
             "targetNodeId": "node-trace-map",
             "targetPort": "lat"
         },
         {
-            "id": "c6",
+            "id": "c5",
             "sourceNodeId": "node-iso-lon",
             "sourcePort": "data",
             "targetNodeId": "node-trace-map",
             "targetPort": "lon"
         },
         {
-            "id": "c7",
+            "id": "c6",
             "sourceNodeId": "node-iso-city",
             "sourcePort": "data",
             "targetNodeId": "node-trace-map",
             "targetPort": "text"
         },
         {
-            "id": "c8",
+            "id": "c7",
             "sourceNodeId": "node-trace-map",
             "sourcePort": "trace",
             "targetNodeId": "node-plotly-final",
             "targetPort": "data"
         },
         {
-            "id": "c9",
+            "id": "c8",
             "sourceNodeId": "node-layout-geo",
-            "sourcePort": "value",
+            "sourcePort": "output",
             "targetNodeId": "node-plotly-final",
             "targetPort": "layout"
         }
     ],
-    "zoom": 0.8,
+    "zoom": 0.7,
     "pan": {
         "x": 50,
         "y": 50

@@ -10,7 +10,7 @@
       <div v-if="isOpen" class="dropdown-menu">
         <input ref="searchInput" v-model="searchQuery" placeholder="Search..." @mousedown.stop @click.stop
           class="search-input" />
-        <ul class="options-list" @wheel.stop @mousedown.stop>
+        <ul class="options-list" @mousedown.stop>
           <li v-for="op in filteredOperations" :key="op.value" @click.stop="selectOperation(op.value)"
             :class="{ active: op.value === node.data.operation }">
             {{ op.label }}

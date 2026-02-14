@@ -2,278 +2,21 @@
     "version": 1,
     "nodes": [
         {
-            "id": "csv-states",
-            "type": "csvInput",
-            "label": "State Data",
+            "id": "node-data",
+            "type": "link",
+            "label": "Example Data",
             "position": {
                 "x": 100,
-                "y": 200
+                "y": 300
             },
             "data": {
-                "fileName": "us_states_sample.csv",
-                "csvData": [
-                    [
-                        "id",
-                        "state",
-                        "val"
-                    ],
-                    [
-                        "AL",
-                        "Alabama",
-                        45
-                    ],
-                    [
-                        "AK",
-                        "Alaska",
-                        10
-                    ],
-                    [
-                        "AZ",
-                        "Arizona",
-                        78
-                    ],
-                    [
-                        "AR",
-                        "Arkansas",
-                        32
-                    ],
-                    [
-                        "CA",
-                        "California",
-                        95
-                    ],
-                    [
-                        "CO",
-                        "Colorado",
-                        67
-                    ],
-                    [
-                        "CT",
-                        "Connecticut",
-                        58
-                    ],
-                    [
-                        "DE",
-                        "Delaware",
-                        25
-                    ],
-                    [
-                        "FL",
-                        "Florida",
-                        88
-                    ],
-                    [
-                        "GA",
-                        "Georgia",
-                        72
-                    ],
-                    [
-                        "HI",
-                        "Hawaii",
-                        15
-                    ],
-                    [
-                        "ID",
-                        "Idaho",
-                        44
-                    ],
-                    [
-                        "IL",
-                        "Illinois",
-                        70
-                    ],
-                    [
-                        "IN",
-                        "Indiana",
-                        55
-                    ],
-                    [
-                        "IA",
-                        "Iowa",
-                        40
-                    ],
-                    [
-                        "KS",
-                        "Kansas",
-                        38
-                    ],
-                    [
-                        "KY",
-                        "Kentucky",
-                        48
-                    ],
-                    [
-                        "LA",
-                        "Louisiana",
-                        42
-                    ],
-                    [
-                        "ME",
-                        "Maine",
-                        22
-                    ],
-                    [
-                        "MD",
-                        "Maryland",
-                        65
-                    ],
-                    [
-                        "MA",
-                        "Massachusetts",
-                        80
-                    ],
-                    [
-                        "MI",
-                        "Michigan",
-                        68
-                    ],
-                    [
-                        "MN",
-                        "Minnesota",
-                        62
-                    ],
-                    [
-                        "MS",
-                        "Mississippi",
-                        30
-                    ],
-                    [
-                        "MO",
-                        "Missouri",
-                        52
-                    ],
-                    [
-                        "MT",
-                        "Montana",
-                        20
-                    ],
-                    [
-                        "NE",
-                        "Nebraska",
-                        35
-                    ],
-                    [
-                        "NV",
-                        "Nevada",
-                        12
-                    ],
-                    [
-                        "NH",
-                        "New Hampshire",
-                        28
-                    ],
-                    [
-                        "NJ",
-                        "New Jersey",
-                        85
-                    ],
-                    [
-                        "NM",
-                        "New Mexico",
-                        36
-                    ],
-                    [
-                        "NY",
-                        "New York",
-                        92
-                    ],
-                    [
-                        "NC",
-                        "North Carolina",
-                        74
-                    ],
-                    [
-                        "ND",
-                        "North Dakota",
-                        18
-                    ],
-                    [
-                        "OH",
-                        "Ohio",
-                        66
-                    ],
-                    [
-                        "OK",
-                        "Oklahoma",
-                        46
-                    ],
-                    [
-                        "OR",
-                        "Oregon",
-                        54
-                    ],
-                    [
-                        "PA",
-                        "Pennsylvania",
-                        76
-                    ],
-                    [
-                        "RI",
-                        "Rhode Island",
-                        24
-                    ],
-                    [
-                        "SC",
-                        "South Carolina",
-                        50
-                    ],
-                    [
-                        "SD",
-                        "South Dakota",
-                        16
-                    ],
-                    [
-                        "TN",
-                        "Tennessee",
-                        56
-                    ],
-                    [
-                        "TX",
-                        "Texas",
-                        82
-                    ],
-                    [
-                        "UT",
-                        "Utah",
-                        49
-                    ],
-                    [
-                        "VT",
-                        "Vermont",
-                        21
-                    ],
-                    [
-                        "VA",
-                        "Virginia",
-                        71
-                    ],
-                    [
-                        "WA",
-                        "Washington",
-                        64
-                    ],
-                    [
-                        "WV",
-                        "West Virginia",
-                        29
-                    ],
-                    [
-                        "WI",
-                        "Wisconsin",
-                        59
-                    ],
-                    [
-                        "WY",
-                        "Wyoming",
-                        14
-                    ]
-                ],
-                "width": 3,
-                "height": 51
+                "manualUrl": "https://github.com/baconlover209/Nodeplot/blob/main/exampleData.csv"
             },
-            "inputs": {},
+            "inputs": {
+                "url": null
+            },
             "outputs": {
-                "data": null
+                "output": null
             }
         },
         {
@@ -281,11 +24,11 @@
             "type": "isolateColumn",
             "label": "State Names",
             "position": {
-                "x": 350,
-                "y": 150
+                "x": 600,
+                "y": 100
             },
             "data": {
-                "columnIndex": 1
+                "columnIndex": 11
             },
             "inputs": {
                 "csvData": null
@@ -299,11 +42,11 @@
             "type": "isolateColumn",
             "label": "Values",
             "position": {
-                "x": 350,
-                "y": 280
+                "x": 600,
+                "y": 350
             },
             "data": {
-                "columnIndex": 2
+                "columnIndex": 12
             },
             "inputs": {
                 "csvData": null
@@ -317,8 +60,8 @@
             "type": "geojson",
             "label": "USA States GeoJSON",
             "position": {
-                "x": 350,
-                "y": 450
+                "x": 600,
+                "y": 600
             },
             "data": {
                 "url": "https://raw.githubusercontent.com/PublicaMundi/MappingAPI/master/data/geojson/us-states.json",
@@ -334,8 +77,8 @@
             "type": "advancedTrace",
             "label": "Choropleth Layer",
             "position": {
-                "x": 650,
-                "y": 250
+                "x": 1100,
+                "y": 300
             },
             "data": {
                 "type": "choropleth",
@@ -364,8 +107,8 @@
             "type": "plotly",
             "label": "Map Display",
             "position": {
-                "x": 950,
-                "y": 250
+                "x": 1600,
+                "y": 300
             },
             "data": {},
             "inputs": {
@@ -378,15 +121,15 @@
     "connections": [
         {
             "id": "c1",
-            "sourceNodeId": "csv-states",
-            "sourcePort": "data",
+            "sourceNodeId": "node-data",
+            "sourcePort": "output",
             "targetNodeId": "iso-codes",
             "targetPort": "csvData"
         },
         {
             "id": "c2",
-            "sourceNodeId": "csv-states",
-            "sourcePort": "data",
+            "sourceNodeId": "node-data",
+            "sourcePort": "output",
             "targetNodeId": "iso-values",
             "targetPort": "csvData"
         },
@@ -419,9 +162,9 @@
             "targetPort": "data"
         }
     ],
-    "zoom": 0.8,
+    "zoom": 0.7,
     "pan": {
-        "x": 100,
-        "y": 100
+        "x": 50,
+        "y": 50
     }
 }
