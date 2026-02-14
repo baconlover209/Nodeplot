@@ -1,6 +1,7 @@
 <template>
-  <div class="node-editor-canvas" ref="canvasRef" @mousedown="onMouseDown" @mousemove="onMouseMove" @mouseup="onMouseUp"
-    @wheel.prevent="onWheel" @contextmenu.prevent="onContextMenu">
+  <div class="node-editor-canvas" ref="canvasRef" @mousedown.capture="onMouseDown" @mousemove.capture="onMouseMove"
+    @mouseup.capture="onMouseUp" @mouseup="onMouseUpBubble" @wheel.prevent="onWheel"
+    @contextmenu.prevent="onContextMenu">
     <!-- Connections Layer (SVG) -->
     <svg class="connections-layer">
       <g :style="transformStyle">
@@ -9,7 +10,7 @@
           :y1="getPortPosition(conn.sourceNodeId, conn.sourcePort, 'output').y"
           :x2="getPortPosition(conn.targetNodeId, conn.targetPort, 'input').x"
           :y2="getPortPosition(conn.targetNodeId, conn.targetPort, 'input').y" :value="getConnectionValue(conn.id)"
-          @click.stop="onConnectionClick(conn.id)" />
+          :id="conn.id" @click.stop="onConnectionClick(conn.id)" />
         <!-- Dragging Connection Line -->
         <ConnectionLine v-if="connectionState && connectionState.isConnecting" :x1="connectionState.sourceType === 'output' ? dragStart.x : dragEnd.x
           " :y1="connectionState.sourceType === 'output' ? dragStart.y : dragEnd.y
@@ -91,6 +92,7 @@ import {
   startSelectionBox,
   updateSelectionBox,
   endSelectionBox,
+  selectAll,
 } from "./nodeEditorState";
 import type { NodeDefinition } from "./nodeEditorState";
 import ConnectionLine from "./ConnectionLine.vue";
@@ -187,7 +189,12 @@ function onMouseDown(e: MouseEvent) {
 
   // Pan on Middle Click OR (Left Click on Background or with Alt)
   if (e.button === 1 || (e.button === 0 && (e.altKey || isBackground))) {
-    // Start Box Selection if Shift is pressed
+    if (e.button === 1) {
+      e.preventDefault(); // Stop middle-click autoscroll
+      e.stopPropagation(); // Prevent nodes from reacting to middle click
+    }
+
+    // Start Box Selection if Shift is pressed (only on background)
     if (isBackground && e.shiftKey && e.button === 0) {
       startSelectionBox(mousePos.value.x, mousePos.value.y);
       return;
@@ -229,7 +236,13 @@ function onMouseUp(e: MouseEvent) {
   }
   isPanning = false;
   endNodeDrag();
+}
 
+/**
+ * Bubble phase mouse up handler.
+ * Used for ending connections safely if they weren't caught by ports.
+ */
+function onMouseUpBubble() {
   if (connectionState.value?.isConnecting) {
     endConnection();
   }
@@ -263,9 +276,88 @@ function onWheel(e: WheelEvent) {
 }
 
 // --- Keyboard Interaction ---
+// --- Keyboard Movement (WASD/QE) ---
+const keysPressed = ref<Set<string>>(new Set());
+let movementAnimationFrame: number | null = null;
+
+function startMovementLoop() {
+  if (movementAnimationFrame) return;
+
+  const move = () => {
+    if (keysPressed.value.size === 0) {
+      movementAnimationFrame = null;
+      return;
+    }
+
+    // Disable movement if Shift or Control is held
+    if (keysPressed.value.has("shift") || keysPressed.value.has("control")) {
+      movementAnimationFrame = requestAnimationFrame(move);
+      return;
+    }
+
+    const moveSpeed = 10;
+    const zoomSpeed = 0.02;
+    let dx = 0;
+    let dy = 0;
+    let dz = 0;
+
+    if (keysPressed.value.has("w")) dy += moveSpeed;
+    if (keysPressed.value.has("s")) dy -= moveSpeed;
+    if (keysPressed.value.has("a")) dx += moveSpeed;
+    if (keysPressed.value.has("d")) dx -= moveSpeed;
+    if (keysPressed.value.has("q")) dz -= zoomSpeed;
+    if (keysPressed.value.has("e")) dz += zoomSpeed;
+
+    if (dx !== 0 || dy !== 0) {
+      setPan({ x: pan.value.x + dx, y: pan.value.y + dy });
+    }
+
+    if (dz !== 0) {
+      // Zoom towards center of screen
+      if (canvasRef.value) {
+        const rect = canvasRef.value.getBoundingClientRect();
+        const centerX = rect.width / 2;
+        const centerY = rect.height / 2;
+
+        let newZoom = zoom.value + dz;
+        newZoom = Math.max(0.1, Math.min(newZoom, 5));
+
+        const worldX = (centerX - pan.value.x) / zoom.value;
+        const worldY = (centerY - pan.value.y) / zoom.value;
+
+        const newPanX = centerX - worldX * newZoom;
+        const newPanY = centerY - worldY * newZoom;
+
+        setPan({ x: newPanX, y: newPanY });
+        setZoom(newZoom);
+      }
+    }
+
+    movementAnimationFrame = requestAnimationFrame(move);
+  };
+
+  movementAnimationFrame = requestAnimationFrame(move);
+}
+
 function onKeyDown(e: KeyboardEvent) {
   // Avoid shortcuts if inside an input
   if (["INPUT", "TEXTAREA"].includes((e.target as HTMLElement).tagName)) return;
+
+  const key = e.key.toLowerCase();
+
+  // Ctrl+A Select All
+  if (key === "a" && (e.ctrlKey || e.metaKey)) {
+    e.preventDefault();
+    selectAll();
+    return;
+  }
+
+  if (["w", "a", "s", "d", "q", "e", "shift", "control"].includes(key)) {
+    keysPressed.value.add(key);
+    startMovementLoop();
+    // Don't preventDefault for everything, but maybe for these since they are camera controls
+    if (!e.ctrlKey && !e.metaKey) e.preventDefault();
+  }
 
   // Delete selected nodes
   if (e.key === "Delete" || e.key === "Backspace") {
@@ -283,7 +375,7 @@ function onKeyDown(e: KeyboardEvent) {
 
   // Press 'a' while dragging -> Create node (Constant for input, Result for output)
   if (
-    e.key.toLowerCase() === "a" &&
+    key === "a" &&
     !e.shiftKey &&
     connectionState.value?.isConnecting
   ) {
@@ -295,7 +387,7 @@ function onKeyDown(e: KeyboardEvent) {
 
   // Press 'i' while dragging from input -> Create Input Control
   if (
-    e.key.toLowerCase() === "i" &&
+    key === "i" &&
     !e.shiftKey &&
     connectionState.value.isConnecting &&
     connectionState.value.sourceType === "input"
@@ -324,36 +416,43 @@ function onKeyDown(e: KeyboardEvent) {
   }
 
   // Copy (Ctrl+C)
-  if (e.ctrlKey && e.key.toLowerCase() === "c") {
+  if (e.ctrlKey && key === "c") {
     copySelection();
   }
 
   // Paste (Ctrl+V)
-  if (e.ctrlKey && e.key.toLowerCase() === "v") {
+  if (e.ctrlKey && key === "v") {
     pasteNodes(mousePos.value);
   }
 
   // Undo / Redo
   if (e.ctrlKey) {
-    if (e.key.toLowerCase() === "z" && e.shiftKey) {
+    if (key === "z" && e.shiftKey) {
       e.preventDefault();
       redo();
-    } else if (e.key.toLowerCase() === "y") {
+    } else if (key === "y") {
       e.preventDefault();
       redo();
-    } else if (e.key.toLowerCase() === "z") {
+    } else if (key === "z") {
       e.preventDefault();
       undo();
     }
   }
 }
 
+function onKeyUp(e: KeyboardEvent) {
+  keysPressed.value.delete(e.key.toLowerCase());
+}
+
 onMounted(() => {
   window.addEventListener("keydown", onKeyDown);
+  window.addEventListener("keyup", onKeyUp);
 });
 
 onUnmounted(() => {
   window.removeEventListener("keydown", onKeyDown);
+  window.removeEventListener("keyup", onKeyUp);
+  if (movementAnimationFrame) cancelAnimationFrame(movementAnimationFrame);
 });
 
 // --- Connection Logic ---

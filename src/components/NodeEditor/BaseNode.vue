@@ -1,70 +1,46 @@
 <template>
-  <div
-    ref="containerRef"
-    class="node-container"
-    :class="{ selected: selected }"
-    :style="style"
-    @mousedown.stop="onMouseDown"
-  >
+  <div ref="containerRef" class="node-container" :class="{ selected: selected }" :style="style"
+    @mousedown.stop="onMouseDown">
     <!-- Category Color Bar -->
-    <div
-      class="category-bar"
-      :style="{ backgroundColor: getNodeColor(node.type) }"
-    ></div>
+    <div class="category-bar" :style="{ backgroundColor: getNodeColor(node.type) }"></div>
 
     <div class="node-header">
       <button class="toggle-btn" @click.stop="toggleCollapse">
         {{ node.collapsed ? "+" : "-" }}
       </button>
-      <input
-        v-if="isEditing"
-        ref="titleInputRef"
-        v-model="editTitle"
-        @blur="saveTitle"
-        @keyup.enter="saveTitle"
-        @mousedown.stop
-        class="node-title-input"
-      />
-      <span v-else @dblclick.stop="startEditing">{{ node.label }}</span>
+      <input v-if="isEditing" ref="titleInputRef" v-model="editTitle" @blur="saveTitle" @keyup.enter="saveTitle"
+        @mousedown.stop class="node-title-input" />
+      <span v-else @dblclick.stop="startEditing" class="title-text">{{ node.label }}</span>
+      <div v-if="error" class="error-indicator" :title="errorMessage">
+        !
+      </div>
     </div>
 
     <div class="node-body" :style="{ minHeight: minBodyHeight + 'px' }">
       <div class="inputs">
-        <div
-          v-for="(_input, key) in node.inputs"
-          :key="key"
-          :ref="el => { if (el) inputSocketRefs[key as string] = el as HTMLElement }"
-          class="socket input-socket"
+        <div v-for="(_input, key) in node.inputs" :key="key"
+          :ref="el => { if (el) inputSocketRefs[key as string] = el as HTMLElement }" class="socket input-socket"
           @mousedown.stop.prevent="startConnect($event, 'input', key as string)"
           @mouseup.stop.prevent="endConnect($event, 'input', key as string)"
-          @click.stop="onSocketClick($event, 'input', key as string)"
-        >
+          @click.stop="onSocketClick($event, 'input', key as string)">
           <div class="socket-handle"></div>
           <span class="socket-label">{{ key }}</span>
         </div>
       </div>
 
       <div class="outputs">
-        <div
-          v-for="(_output, key) in node.outputs"
-          :key="key"
-          :ref="el => { if (el) outputSocketRefs[key as string] = el as HTMLElement }"
-          class="socket output-socket"
+        <div v-for="(_output, key) in node.outputs" :key="key"
+          :ref="el => { if (el) outputSocketRefs[key as string] = el as HTMLElement }" class="socket output-socket"
           @mousedown.stop.prevent="startConnect($event, 'output', key as string)"
           @mouseup.stop.prevent="endConnect($event, 'output', key as string)"
-          @click.stop="onSocketClick($event, 'output', key as string)"
-        >
+          @click.stop="onSocketClick($event, 'output', key as string)">
           <span class="socket-label">{{ key }}</span>
           <div class="socket-handle"></div>
         </div>
       </div>
 
       <!-- Main slot for custom node UI -->
-      <div
-        class="node-content"
-        v-if="!node.collapsed"
-        :style="{ marginTop: portsHeight + 'px' }"
-      >
+      <div class="node-content" v-if="!node.collapsed" :style="{ marginTop: portsHeight + 'px' }">
         <slot></slot>
       </div>
     </div>
@@ -79,6 +55,7 @@ import {
   getNodeColor,
   layoutVersion,
   pushHistoryState,
+  nodeEditorState,
 } from "./nodeEditorState";
 import type { NodeDefinition } from "./nodeEditorState";
 
@@ -239,6 +216,12 @@ onUpdated(() => {
 watch(layoutVersion, () => {
   nextTick(() => updateSocketPositions());
 });
+
+const error = computed(() => !!nodeEditorState.nodeErrors[props.node.id]);
+const errorMessage = computed(() => {
+  const err = nodeEditorState.nodeErrors[props.node.id];
+  return typeof err === 'string' ? err : 'Error during evaluation';
+});
 </script>
 
 <style scoped>
@@ -273,6 +256,27 @@ watch(layoutVersion, () => {
   height: 32px;
   display: flex;
   align-items: center;
+  position: relative;
+}
+
+.title-text {
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-right: 20px;
+}
+
+.error-indicator {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #ff4444;
+  font-weight: bold;
+  font-size: 14px;
+  cursor: help;
+  text-shadow: 0 0 5px rgba(255, 68, 68, 0.3);
 }
 
 .node-title-input {

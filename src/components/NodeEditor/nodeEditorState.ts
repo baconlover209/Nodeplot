@@ -78,6 +78,8 @@ export interface NodeEditorState {
         endX: number;
         endY: number;
     };
+    nodeErrors: Record<string, string | boolean>;
+    connectionErrors: Record<string, boolean>;
 }
 
 const state = reactive<NodeEditorState>({
@@ -112,7 +114,9 @@ const state = reactive<NodeEditorState>({
         startY: 0,
         endX: 0,
         endY: 0
-    }
+    },
+    nodeErrors: {},
+    connectionErrors: {}
 });
 
 // --- Helpers ---
@@ -372,6 +376,10 @@ export function selectNode(nodeId: string, additive = false) {
         state.selection = [nodeId];
     }
     bringToFront(nodeId);
+}
+
+export function selectAll() {
+    state.selection = state.nodes.map(n => n.id);
 }
 
 export function startSelectionBox(x: number, y: number) {
@@ -677,8 +685,8 @@ function evaluateNode(node: NodeDefinition) {
         if (values) values['output'] = val;
     }
     else if (node.type === 'math') {
-        const a = getInputValue(node.id, 'a') ?? 0;
-        const b = getInputValue(node.id, 'b') ?? 0;
+        const a = getInputValue(node.id, 'a') ?? node.data.a ?? 0;
+        const b = getInputValue(node.id, 'b') ?? node.data.b ?? 0;
         let result: any = 0;
 
         const op = node.data.operation;
@@ -2064,12 +2072,18 @@ function evaluateNode(node: NodeDefinition) {
 }
 
 export function evaluateGraph() {
+    // Clear errors before evaluation
+    for (const key in state.nodeErrors) delete state.nodeErrors[key];
+    for (const key in state.connectionErrors) delete state.connectionErrors[key];
+
     const visited = new Set<string>();
     const processing = new Set<string>();
 
     function process(nodeId: string) {
         if (processing.has(nodeId)) return;
-        if (visited.has(nodeId)) return;
+        if (visited.has(nodeId)) {
+            return;
+        }
 
         processing.add(nodeId);
 
@@ -2082,7 +2096,46 @@ export function evaluateGraph() {
         // Use executionNodes to find the node definition
         const node = executionNodes.find(n => n.id === nodeId);
         if (node) {
-            evaluateNode(node);
+            try {
+                evaluateNode(node);
+
+                // Check for NaN or Infinity in common result ports after evaluation
+                // This covers Math and Compare nodes
+                const values = nodeValues[node.id];
+                if (values) {
+                    for (const port in values) {
+                        const val = values[port];
+                        if (typeof val === 'number' && (isNaN(val) || !isFinite(val))) {
+                            state.nodeErrors[node.id] = `Invalid result: ${val}`;
+                            // Mark all connections from this node as error connections
+                            executionConnections.filter(c => c.sourceNodeId === node.id)
+                                .forEach(c => state.connectionErrors[c.id] = true);
+                        } else if (Array.isArray(val)) {
+                            // Check first few elements for performance
+                            const sampleSize = Math.min(val.length, 10);
+                            for (let i = 0; i < sampleSize; i++) {
+                                if (typeof val[i] === 'number' && (isNaN(val[i]) || !isFinite(val[i]))) {
+                                    state.nodeErrors[node.id] = `Array contains invalid values`;
+                                    executionConnections.filter(c => c.sourceNodeId === node.id)
+                                        .forEach(c => state.connectionErrors[c.id] = true);
+                                    break;
+                                }
+                            }
+                            // Also check for massive arrays that might cause lag
+                            if (val.length > 1000000) {
+                                state.nodeErrors[node.id] = `Array too large (${val.length})`;
+                                executionConnections.filter(c => c.sourceNodeId === node.id)
+                                    .forEach(c => state.connectionErrors[c.id] = true);
+                            }
+                        }
+                    }
+                }
+            } catch (e: any) {
+                console.error(`Error evaluating node ${node.id}:`, e);
+                state.nodeErrors[node.id] = e.message || "Evaluation error";
+                executionConnections.filter(c => c.sourceNodeId === node.id)
+                    .forEach(c => state.connectionErrors[c.id] = true);
+            }
         }
 
         processing.delete(nodeId);

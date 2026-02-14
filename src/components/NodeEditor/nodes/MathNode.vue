@@ -1,11 +1,6 @@
 <template>
-  <BaseNode
-    :node="node"
-    :selected="selected"
-    @connect-start="$emit('connect-start', $event)"
-    @connect-end="$emit('connect-end', $event)"
-    @socket-click="$emit('socket-click', $event)"
-  >
+  <BaseNode :node="node" :selected="selected" @connect-start="$emit('connect-start', $event)"
+    @connect-end="$emit('connect-end', $event)" @socket-click="$emit('socket-click', $event)">
     <div ref="rootEl" class="operation-selector">
       <div class="dropdown-trigger" @click.stop="toggleDropdown">
         <span class="label-text">{{ currentLabel }}</span>
@@ -13,27 +8,29 @@
       </div>
 
       <div v-if="isOpen" class="dropdown-menu">
-        <input
-          ref="searchInput"
-          v-model="searchQuery"
-          placeholder="Search..."
-          @mousedown.stop
-          @click.stop
-          class="search-input"
-        />
+        <input ref="searchInput" v-model="searchQuery" placeholder="Search..." @mousedown.stop @click.stop
+          class="search-input" />
         <ul class="options-list" @wheel.stop @mousedown.stop>
-          <li
-            v-for="op in filteredOperations"
-            :key="op.value"
-            @click.stop="selectOperation(op.value)"
-            :class="{ active: op.value === node.data.operation }"
-          >
+          <li v-for="op in filteredOperations" :key="op.value" @click.stop="selectOperation(op.value)"
+            :class="{ active: op.value === node.data.operation }">
             {{ op.label }}
           </li>
           <li v-if="filteredOperations.length === 0" class="no-results">
             No results
           </li>
         </ul>
+      </div>
+    </div>
+
+    <!-- Manual Inputs for a and b -->
+    <div class="manual-inputs">
+      <div v-if="!isAConnected" class="input-field">
+        <label>a:</label>
+        <input type="number" v-model.number="node.data.a" @input="onInput" @mousedown.stop placeholder="0" />
+      </div>
+      <div v-if="!isBConnected && needsB" class="input-field">
+        <label>b:</label>
+        <input type="number" v-model.number="node.data.b" @input="onInput" @mousedown.stop placeholder="0" />
       </div>
     </div>
   </BaseNode>
@@ -43,12 +40,20 @@
 import { ref, computed, onMounted, onUnmounted, nextTick } from "vue";
 import BaseNode from "../BaseNode.vue";
 import type { NodeDefinition } from "../nodeEditorState";
-import { triggerGraphUpdate } from "../nodeEditorState";
+import {
+  triggerGraphUpdate,
+  nodeEditorState,
+  pushHistoryState,
+} from "../nodeEditorState";
 
 const props = defineProps<{
   node: NodeDefinition;
   selected: boolean;
 }>();
+
+// Initialize data if not set
+if (props.node.data.a === undefined) props.node.data.a = 0;
+if (props.node.data.b === undefined) props.node.data.b = 0;
 
 defineEmits(["connect-start", "connect-end", "socket-click"]);
 
@@ -140,6 +145,58 @@ function selectOperation(val: string) {
   props.node.data.operation = val;
   isOpen.value = false;
   searchQuery.value = "";
+  triggerGraphUpdate();
+  pushHistoryState();
+}
+
+const isAConnected = computed(() => {
+  return nodeEditorState.connections.some(
+    (c) => c.targetNodeId === props.node.id && c.targetPort === "a"
+  );
+});
+
+const isBConnected = computed(() => {
+  return nodeEditorState.connections.some(
+    (c) => c.targetNodeId === props.node.id && c.targetPort === "b"
+  );
+});
+
+const unaryOperations = [
+  "sqrt",
+  "abs",
+  "round",
+  "floor",
+  "ceil",
+  "sin",
+  "cos",
+  "tan",
+  "asin",
+  "acos",
+  "atan",
+  "exp",
+  "log10",
+  "log2",
+  "sign",
+  "trunc",
+  "cbrt",
+  "sinh",
+  "cosh",
+  "tanh",
+  "asinh",
+  "acosh",
+  "atanh",
+  "expm1",
+  "log1p",
+  "fround",
+  "clz32",
+  "random",
+];
+
+const needsB = computed(() => {
+  return !unaryOperations.includes(props.node.data.operation);
+});
+
+function onInput() {
   triggerGraphUpdate();
 }
 
@@ -247,9 +304,11 @@ onUnmounted(() => {
 .options-list::-webkit-scrollbar {
   width: 6px;
 }
+
 .options-list::-webkit-scrollbar-track {
   background: #222;
 }
+
 .options-list::-webkit-scrollbar-thumb {
   background: #444;
   border-radius: 3px;
@@ -284,8 +343,44 @@ onUnmounted(() => {
   font-style: italic;
   cursor: default;
 }
+
 .no-results:hover {
   background: transparent;
   color: #666;
+}
+
+.manual-inputs {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 4px 0;
+}
+
+.input-field {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.input-field label {
+  font-size: 10px;
+  color: #888;
+  width: 12px;
+}
+
+.input-field input {
+  flex: 1;
+  background: #111;
+  border: 1px solid #444;
+  border-radius: 2px;
+  color: #fff;
+  font-size: 11px;
+  padding: 2px 4px;
+  text-align: right;
+}
+
+.input-field input:focus {
+  border-color: #00d2ff;
+  outline: none;
 }
 </style>
