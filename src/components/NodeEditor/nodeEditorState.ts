@@ -288,7 +288,7 @@ export const NODE_CATEGORIES = [
     {
         label: 'Logic & Math',
         color: '#00D2FF', // Teal
-        nodeTypes: ['math', 'logic', 'compare', 'if', 'switch', 'range', 'filter']
+        nodeTypes: ['math', 'logic', 'compare', 'if', 'switch', 'range', 'filter', 'calculus']
     },
     {
         label: 'Inputs',
@@ -768,6 +768,52 @@ function evaluateNode(node: NodeDefinition) {
         } else {
             // Scalar
             result = calculateOp(a, b, op);
+        }
+
+        if (!nodeValues[node.id]) nodeValues[node.id] = {};
+        const values = nodeValues[node.id];
+        if (values) values['result'] = result;
+    }
+    else if (node.type === 'calculus') {
+        const y = getInputValue(node.id, 'y');
+        const x = getInputValue(node.id, 'x');
+        const operation = node.data.operation || 'derivative';
+
+        let result = null;
+
+        if (Array.isArray(y)) {
+            const len = y.length;
+            const hasX = Array.isArray(x) && x.length === len;
+            result = new Array(len);
+
+            if (operation === 'derivative') {
+                for (let i = 0; i < len; i++) {
+                    if (i === 0) {
+                        // Forward difference for the first point
+                        if (len > 1) {
+                            const dy = y[1] - y[0];
+                            const dx = hasX ? (x[1] - x[0]) : 1;
+                            result[i] = dx !== 0 ? dy / dx : 0;
+                        } else {
+                            result[i] = 0;
+                        }
+                    } else {
+                        // Backward difference for other points
+                        const dy = y[i] - y[i - 1];
+                        const dx = hasX ? (x[i] - x[i - 1]) : 1;
+                        result[i] = dx !== 0 ? dy / dx : 0;
+                    }
+                }
+            } else if (operation === 'integral') {
+                let sum = 0;
+                result[0] = 0;
+                for (let i = 1; i < len; i++) {
+                    const avgY = (y[i] + y[i - 1]) / 2;
+                    const dx = hasX ? (x[i] - x[i - 1]) : 1;
+                    sum += avgY * dx;
+                    result[i] = sum;
+                }
+            }
         }
 
         if (!nodeValues[node.id]) nodeValues[node.id] = {};

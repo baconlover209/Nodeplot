@@ -9,7 +9,7 @@
                 "y": 400
             },
             "data": {
-                "manualUrl": "https://github.com/baconlover209/Nodeplot/blob/main/exampleData.csv"
+                "manualUrl": "https://github.com/baconlover209/Nodeplot/blob/main/public/exampleData.csv"
             },
             "inputs": {
                 "url": null

@@ -108,6 +108,7 @@ import AdvancedTraceNode from "./nodes/AdvancedTraceNode.vue";
 import GeoJSONNode from "./nodes/GeoJSONNode.vue";
 import IndexNode from "./nodes/IndexNode.vue";
 import JSONExtractionNode from "./nodes/JSONExtractionNode.vue";
+import CalculusNode from "./nodes/CalculusNode.vue";
 import AddNodeMenu from "./AddNodeMenu.vue";
 
 registerNodeType("config", ConfigNode);
@@ -122,6 +123,7 @@ registerNodeType("advancedTrace", AdvancedTraceNode);
 registerNodeType("geojson", GeoJSONNode);
 registerNodeType("index", IndexNode);
 registerNodeType("jsonExtraction", JSONExtractionNode);
+registerNodeType("calculus", CalculusNode);
 
 // --- State Access ---
 const nodes = computed(() => nodeEditorState.nodes);
@@ -717,6 +719,11 @@ function createNodeAtPos(type: string, pos: { x: number; y: number }) {
     node.data = { operation: "add" };
     node.inputs = { a: null, b: null };
     node.outputs = { result: null };
+  } else if (type === "calculus") {
+    node.label = "Calculus";
+    node.data = { operation: "derivative" };
+    node.inputs = { y: null, x: null };
+    node.outputs = { result: null };
   } else if (type === "range") {
     node.label = "Range";
     node.data = { a: 10, b: 1, c: 0 };
@@ -754,7 +761,7 @@ function createNodeAtPos(type: string, pos: { x: number; y: number }) {
     node.outputs = { output: null, width: null, height: null, fileName: null };
   } else if (type === "constant") {
     node.label = "Constant";
-    node.data = { dataType: "raw", value: "" };
+    node.data = { dataType: "json", value: "" };
     node.inputs = {};
     node.outputs = { output: null };
   } else if (type === "color") {
